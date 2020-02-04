@@ -3,27 +3,51 @@ import IPython as IP
 # --
 import pandas as pd
 import numpy as np
+import itertools
+import multiprocessing
 
-import data as city_data
+import data as city_data                                    
 
-def exhaustiveSearch(data, seq=[]):
-    n, m = data.shape
 
-    for i in range(m):
-        # print(f"m = {m}")
-        col = data.columns[i]
-        seq.append(col)
-        exhaustiveSearch(
-            data.drop( col, axis=1),
-            seq,
-            )
-        seq = []
-    print(seq)
+
+def fit(path, data):
+    cum = 0;
+    for i in range(len(path)-1):
+        cum += data.iloc[path[i], path[i+1]]
+    return cum
     
+def fun(perm, data):
+    path = list(perm) + [perm[0]]
+    current = fit(path, data)
+    return current, path
+
+def exhaustiveSearch(data):
+    cities = data.columns
+    n = len(cities)
+    cities_int = [i for i in range(n)]
+
+    # making somethoing to compare against
+    # IP.embed() # Debug
+    bestPath = cities_int + [cities_int[0]]
+    bestScore = fit(bestPath, data)
+    print(f"bestPath: {bestPath}, bestScore: {bestScore}")
+    current = 0
+    # generating all paths
+    for perm in itertools.permutations(cities_int, n):
+        path = list(perm) + [perm[0]]
+        current = fit(path, data)
+        if current < bestScore:
+            bestScore = current
+            bestPath = path
+        current = 0
+    return bestPath, bestScore
 
 if __name__ == "__main__":
-    subset_cities_df = city_data.data_subset(city_data.path_to_datafile, sub=3)
-    exhaustiveSearch(subset_cities_df)
+
+    tmp = exhaustiveSearch(city_data.data_subset(city_data.path_to_datafile, 10))
+    # tmp = exhaustiveSearch(city_data.data(city_data.path_to_datafile))
+
+    print(tmp)
 
    # Running exhaustive search on subset
 
