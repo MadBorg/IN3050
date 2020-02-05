@@ -16,22 +16,24 @@ def fit(path, data):
     for i in range(len(path)-1):
         cum += data.iloc[path[i], path[i+1]]
     # print(f"Fit: path: {path}, score {cum}")
+    cum += data.iloc[path[-1], path[0]]
     return cum
 
 def exhaustiveSearch(data):
     cities = data.columns
     n = len(cities)
-    cities_int = [i for i in range(n)]
+    cities_int = [i+1 for i in range(n-1)]
+    startCity = 0
 
     # making somethoing to compare against
     # IP.embed() # Debug
-    bestPath = cities_int + [cities_int[0]]
+    bestPath = [startCity] + cities_int
     bestScore = fit(bestPath, data)
-    # print(f"startPath: {bestPath}, startScore: {bestScore}")
+    print(f"startPath: {bestPath}, startScore: {bestScore}")
     current = 0
     # generating all paths
-    for perm in itertools.permutations(cities_int, n):
-        path = list(perm) + [perm[0]]
+    for perm in itertools.permutations(cities_int, n-1):
+        path = [startCity] + list(perm)
         current = fit(path, data)
         if current < bestScore:
             bestScore = current
@@ -53,7 +55,7 @@ if __name__ == "__main__":
     # Getting time data from a range of different sizes of subsets
     totTimeStart = time.time()
     timeData = {}
-    for i in range(2, 10):
+    for i in range(3, 11):
         data_subset = city_data.data_subset(city_data.path_to_datafile, i)
         startTime = time.time()
         print(f"\nRunning exhaustiveSearch, with i: {i}")
