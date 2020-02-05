@@ -57,12 +57,15 @@ if __name__ == "__main__":
     timeData = {}
     for i in range(3, 11):
         data_subset = city_data.data_subset(city_data.path_to_datafile, i)
-        startTime = time.time()
         print(f"\nRunning exhaustiveSearch, with i: {i}")
+
+        startTime = time.time()
         bestPath, bestScore = exhaustiveSearch(data_subset)
         endTime = time.time()
+        
         timeData[i] = endTime - startTime
         print(f"i: {i}, time: {timeData[i]}, bestScore: {bestScore}, bestPath {bestPath}")
+        
     totTime = time.time() - totTimeStart
     print(f"\nTotal time: {totTime}")
     # plotting time data per size

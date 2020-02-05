@@ -14,6 +14,14 @@ def data_subset(path, sub = 6):
 def data(path):
     return  pd.read_csv(path, sep=";")
 
+def fit(path, data):
+    cum = 0;
+    for i in range(len(path)-1):
+        cum += data.iloc[path[i], path[i+1]]
+    # print(f"Fit: path: {path}, score {cum}")
+    cum += data.iloc[path[-1], path[0]]
+    return cum
+
 if __name__ == "__main__":
     df = data_subset(path_to_datafile, 3)
     IP.embed()
