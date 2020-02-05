@@ -1,7 +1,7 @@
 import pandas as pd
 import IPython as IP
 
-path_to_datafile = "european_cities.csv"
+path_to_datafile = "assignment01\\european_cities.csv"
 # data = pd.read_csv(path_to_datafile, sep=";")
 
 
