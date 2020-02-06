@@ -42,23 +42,28 @@ def hill(data, n = 10_000, t = 100):
 if __name__ == "__main__":
     totTimeStart = time.time()
     timeData = {}
+    results = {}
     for i in range(3,11):
         data_subset = city_data.data_subset(city_data.path_to_datafile, i)
         print(f"\nRunning Hill, with i: {i}")
         
         startTime = time.time()
-        bestPath, bestScore = hill(data_subset)
+        bestPath, bestScore = hill(data_subset, t = 10)
         endTime = time.time()
 
         timeData[i] = endTime - startTime
+        results[i] = {"time": timeData[i], "bestScore": bestScore, "bestPath": bestPath"}
         print(f"i: {i}, time: {timeData[i]}, bestScore: {bestScore}, bestPath {bestPath}")
     
     totTime = time.time() - totTimeStart
     print(f"\nTotal time: {totTime}")
 
-    # plotting time data per size
-    tmp = sorted(timeData.items()) # sorted by key, return a list of tuples
-    x, y = zip(*tmp) # unnpacking the data
-    plt.plot(x, y)
-    # plt.yscale("log")
-    plt.show()
+    # Writing data to file
+    city_data.writeResults(results, "hill.json")
+
+    # # plotting time data per size
+    # tmp = sorted(timeData.items()) # sorted by key, return a list of tuples
+    # x, y = zip(*tmp) # unnpacking the data
+    # plt.plot(x, y)
+    # # plt.yscale("log")
+    # plt.show()

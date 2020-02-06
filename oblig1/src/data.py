@@ -1,5 +1,7 @@
 import pandas as pd
 import IPython as IP
+import datetime
+import json
 
 # path_to_datafile = "assignment01\\european_cities.csv"
 path_to_datafile = "oblig1\\assignment01\\european_cities.csv"
@@ -21,6 +23,14 @@ def fit(path, data):
     # print(f"Fit: path: {path}, score {cum}")
     cum += data.iloc[path[-1], path[0]]
     return cum
+
+def writeResults(results, fileName):
+    data = {str(datetime.datetime.now()): results}
+    with open(fileName, "w+") as outFile:
+        json.dump(data, outFile, indent=4)
+
+
+
 
 if __name__ == "__main__":
     df = data_subset(path_to_datafile, 3)
