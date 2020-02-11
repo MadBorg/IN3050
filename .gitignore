@@ -1,3 +1,7 @@
+hill.json
+oblig1/assignment01/Assignment1.ipynb
+
+
 
 # Created by https://www.gitignore.io/api/python,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=python,visualstudiocode
@@ -119,3 +123,4 @@ dmypy.json
 .history
 
 # End of https://www.gitignore.io/api/python,visualstudiocode
+oblig1/.vscode/settings.json
