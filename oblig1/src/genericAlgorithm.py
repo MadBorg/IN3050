@@ -38,9 +38,9 @@ def scrambleMutation(genotype):
     Here the entire chromosome, or some randomly chosen subset of values within it, have their positions scrambled.
     """
     print(f"Genotype: {genotype}") # - Debug
-    # subsetSize = np.random.randint(2, len(genotype))
-    # start = np.random.randint(0, len(genotype))
-    subsetSize = start = 3
+    subsetSize = np.random.randint(2, len(genotype))
+    start = np.random.randint(0, len(genotype))
+    # subsetSize = start = 3
     print(f"subsetSize: {subsetSize}, start: {start}") # - Debug
 
     # Getting a subset, treating it as a linked list
@@ -84,14 +84,42 @@ def scrambleMutation(genotype):
     #         genotype[i] = subset[j]
     #         i += 1
     #         j += 1
-    print(genotype)
+    print(genotype) # - Debug
     
 
 def inverstionMutation(genotype):
     """
     Inversion mutation works by randomly selecting two positions in the chromosome and reversing the order in which the values appear between those positions. 
     """
-    pass
+    print(f"Genotype: {genotype}") # - Debug
+    subsetSize = np.random.randint(2, len(genotype))
+    start = np.random.randint(0, len(genotype))
+    # subsetSize = start = 3
+    print(f"subsetSize: {subsetSize}, start: {start}") # - Debug
+
+    # Getting a subset, treating it as a linked list
+    if start + subsetSize > len(genotype):
+        print("start + subsetSize > len(genotype)") # - Debug
+        subset = genotype[start:]
+        subset = subset + genotype[:subsetSize - len(subset)]
+    else:
+        subset = genotype[start:start+subsetSize]
+    print(f"subset: {subset}") # - Debug
+
+    # Inversion
+    subset.reverse()
+    print(f"reversedSubset: {subset}") # - Debug
+
+    # genotype = [a,b,c,d,e], Start = 3, subsetSize = 3, subset = [d, e, a]
+    # Inserting subset back
+    if start + subsetSize > len(genotype): # If overflow
+        genotype[start:] = subset[: len( genotype[start:] )]
+
+        genotype[: len(subset[len( genotype[start:] ): ])] = subset[len( genotype[start:] ):]
+    else:
+        genotype[start:] = subset[:]
+    print(genotype) # - Debug
+
 
 # Crossover - Recombination
 def pmx(): # - Partially Mapped Crossover
