@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-import src.data as data
+import data as data
 
 import IPython as IP # - for debug
 # mutation
@@ -165,25 +165,35 @@ def rankBasedSelection( initial_order, fit_values, selection_factor = 0.5 ):
     """
     n = len(initial_order)
     # Sort pop after rank, with the fit values
-    fit_values, sorted_order = zip(*sorted(zip(fit_values, initial_order)))# https://stackoverflow.com/questions/5284183/python-sort-list-with-parallel-list
-    
+    fit_values, sorted_order = zip(*sorted(zip(fit_values, initial_order))) # https://stackoverflow.com/questions/5284183/python-sort-list-with-parallel-list
+    for fit, order, in  zip(fit_values, sorted_order):
+        print(f"fit: {fit}, order: {order}")
     # Selection
-    np.random.random(size = n)
-    
+    # selected = []
+    # for i in range(n//2):
+    #     tmp = random.random()
+    #     if tmp > 0.5:
+    #         selected.append(sorted_order[i])
+
+
 
     
 
 if __name__ == "__main__":
     # Constants (variables)
+    print("Constants")
     popSizes = (10, 15, 100)
     iterations = int( 1e3 )
-    subsetSizes = (10, 24)
+    subsetSizes = (10, 24)¨
+    print(f"    popSizes: {popSizes}, iterations: {iterations}, subsetSizes: {subsetSizes}")
 
     # Initializtion
+    print("\nInitializtion")
     # Iterating through different versions
     # TODO: impement the loops
     popSize = popSizes[0] # TODO : Iterate through popSizes
     subsetSize = subsetSizes[0] # TODO : Iterate through subsetSizes
+    print(f"    popsize: {popSize}, subsetSize: {subsetSize}")
 
     # Geting the data and the representation from data script
     cities_df = data.data_subset(data.path_to_datafile)
