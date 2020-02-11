@@ -4,7 +4,7 @@ import datetime
 import json
 
 # path_to_datafile = "assignment01\\european_cities.csv"
-path_to_datafile = "oblig1\\assignment01\\european_cities.csv"
+path_to_datafile = "assignment01\\european_cities.csv"
 
 # data = pd.read_csv(path_to_datafile, sep=";")
 
@@ -29,7 +29,10 @@ def writeResults(results, fileName):
     with open(fileName, "w+") as outFile:
         json.dump(data, outFile, indent=4)
 
-
+def get_representation(df):
+    cities = df.columns
+    n = len(cities)
+    return [i+1 for i in range(n-1)]
 
 
 if __name__ == "__main__":
