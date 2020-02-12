@@ -1,9 +1,15 @@
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 
 import data as data
 
 import IPython as IP # - for debug
+
+# Seeds
+np.random.seed(178)
+random.seed(10)
+
 # mutation
 def swapMutation(genotype):
     """
@@ -39,7 +45,7 @@ def scrambleMutation(genotype):
     """
     Here the entire chromosome, or some randomly chosen subset of values within it, have their positions scrambled.
     """
-    print(f"Genotype: {genotype}") # - Debug
+    print(f"\nStart - Genotype: {genotype}") # - Debug
     subsetSize = np.random.randint(2, len(genotype))
     start = np.random.randint(0, len(genotype))
     # subsetSize = start = 3
@@ -65,16 +71,16 @@ def scrambleMutation(genotype):
 
         genotype[: len(subset[len( genotype[start:] ): ])] = subset[len( genotype[start:] ):]
     else:
-        genotype[start:] = subset[:]
+        genotype[start:start+subsetSize] = subset[:]
 
-    print(genotype) # - Debug
+    print(f"End of genotype: {genotype}") # - Debug
     
 
 def inverstionMutation(genotype):
     """
     Inversion mutation works by randomly selecting two positions in the chromosome and reversing the order in which the values appear between those positions. 
     """
-    print(f"Genotype: {genotype}") # - Debug
+    print(f"\nStart - Genotype: {genotype}") # - Debug
     subsetSize = np.random.randint(2, len(genotype))
     start = np.random.randint(0, len(genotype))
     # subsetSize = start = 3
@@ -100,8 +106,9 @@ def inverstionMutation(genotype):
 
         genotype[: len(subset[len( genotype[start:] ): ])] = subset[len( genotype[start:] ):]
     else:
-        genotype[start:] = subset[:]
-    print(genotype) # - Debug
+        genotype[start:start+subsetSize] = subset[:]
+    print(f"End of genotype: {genotype}") # - Debug
+
 
 
 # Crossover - Recombination
@@ -159,33 +166,42 @@ def cycleCrossover():
     pass
 
 # Parent selection
-def rankBasedSelection( initial_order, fit_values, selection_factor = 0.5 ):
+def rankBasedSelection( pop, fit_values, selection_factor = 0.5 ):
     """
     Using initial order of the candidates, witch is the indices of each candidate. 
     """
-    n = len(initial_order)
+    n = len(pop)
+    order = [i for i in range(n)] # Using order instead of moving pop around.
+
     # Sort pop after rank, with the fit values
-    fit_values, sorted_order = zip(*sorted(zip(fit_values, initial_order))) # https://stackoverflow.com/questions/5284183/python-sort-list-with-parallel-list
-    for fit, order, in  zip(fit_values, sorted_order):
-        print(f"fit: {fit}, order: {order}")
+    fit_values, sorted_order = zip(*sorted(zip(fit_values, order))) # https://stackoverflow.com/questions/5284183/python-sort-list-with-parallel-list
+    # # - Debug
+    # for fit, i, in  zip(fit_values, sorted_order):
+    #     print(f"fit: {fit}, i: {i}, chromosome: {pop[i]}")
+
     # Selection
-    # selected = []
-    # for i in range(n//2):
-    #     tmp = random.random()
-    #     if tmp > 0.5:
-    #         selected.append(sorted_order[i])
+    p = np.array([i for i in range(n)])
+    p = p / np.sum(p) # Cumulative prob
+    parentsOrder = np.random.choice(sorted_order, p=p, size = int(n * selection_factor), replace = False)
+    # print(f"p: {p}") # - Debug
+    parents = []
+    for i in parentsOrder:
+        parents.append(pop[i])
+    return parents
 
-
-
-    
 
 if __name__ == "__main__":
     # Constants (variables)
     print("Constants")
     popSizes = (10, 15, 100)
     iterations = int( 1e3 )
-    subsetSizes = (10, 24)¨
-    print(f"    popSizes: {popSizes}, iterations: {iterations}, subsetSizes: {subsetSizes}")
+    subsetSizes = (10, 24)
+    startCity = 0
+    mutationP = 0.01
+    print(f"    popSizes: {popSizes}, iterations: {iterations}, subsetSizes: {subsetSizes}, startCity: {startCity}")
+
+    # Constants for evaluation
+    scores = []
 
     # Initializtion
     print("\nInitializtion")
@@ -196,41 +212,71 @@ if __name__ == "__main__":
     print(f"    popsize: {popSize}, subsetSize: {subsetSize}")
 
     # Geting the data and the representation from data script
-    cities_df = data.data_subset(data.path_to_datafile)
+    print("\nGetting the data")
+    cities_df = data.data_subset(data.path_to_datafile, sub=subsetSize)
     cities_representation = data.get_representation(cities_df)
+    print(f"    cities: {cities_df.columns}, cities_representation: {cities_representation}")
 
     # Making chromosomes whith no bias
-    pop = [[0]*subsetSize]*popSize
-    for chromosome in pop:
-        chromosome = [i for i in range(subsetSize)]
-        random.shuffle(chromosome)
+    print("\nMaking chromosomes")
+    pop = []
+    for i in range(popSize):
+        pop.append([i for i in range(subsetSize)])
+        random.shuffle(pop[i])
+    print(f"pop: {pop}")
        
 
     # Loop
+    print(f"\nStart Loop, with iterations: {iterations}")
     for i in range(iterations):
 
     # Population - Evaluate each candidate
-        fit_values = []
-        for candidate in pop: # Might be improved with map, migth need to use a lambda function
-            fit_values.append(data.fit(pop, cities_df))
+        fitValues = []
+        for candidate in pop: # Might be improved with map, wich might need to use a lambda function
+            fitValues.append(data.fit([startCity] + candidate, cities_df)) # always the same start city
 
+    # Save score for evaluation
+        scores.append(fitValues[:])
     # Parent Selection - Rank based Selection
-
-
-    # Parents
-
+        parents = rankBasedSelection(pop, fitValues[:]) 
+        
     # Recombination
-
+        print("\nRecombination")
+        offsprings = []
+        while len(offsprings) < popSize:
+            partner1, partner2 = np.random.randint(0, len(parents), size=2)
+            offsprings.append(pmx(parents[ partner1 ], parents[ partner2 ]))
+        
+        print(f"offspring: {offsprings}")
+        
     # Mutation
-
+        print("\nMutation")
+        P = np.random.random(size=popSize)
+        for i in range(popSize):
+            if P[i] < mutationP:
+                inverstionMutation(offsprings[i])
+        print(f"\nMutated: {offsprings}")
     # Offspring
 
     # Survivor selection
+        pop = offsprings[:]
+    # Show progress:
+        print(f"i: {i}")
 
+    # Test
+        if len(offsprings) != popSize:
+            print(f"len offsprings ({len(offsprings)}) is not equal popSize ({popSize})")
+            raise ValueError()
+        for offspring in offsprings:
+            if len(offspring) != subsetSize:
+                print(f"len offspring ({len(offspring)}) is not equal subsetSize ({subsetSize})")
+                raise ValueError()
     # End loop
 
     # Termination
-
+    for score in zip(*scores):
+        plt.plot(np.arange(iterations), score)
+    plt.show()
 
 
     # IP.embed()
