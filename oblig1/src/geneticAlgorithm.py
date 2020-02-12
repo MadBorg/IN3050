@@ -131,33 +131,20 @@ def pmx(P1, P2, c1 = None, c2 = None): # - Partially Mapped Crossover
     offspring[crossoverPoint1 : crossoverPoint2] = segment
     
     # - 2. Starting from the first crossover point look for elements in that segment of the second parent (P2) that have not been copied.
+    for i in P2[c1:c2]:
+        if i not in offspring:
     # - 3. For each of these (say i), look in the offspring to see what element (say j) has been copied in its place from P1.
+            j = offspring[ P2.index(i) ]
     # - 4. Place i into the position occupied by j in P2, since we know that we will not be putting j there (as we already have it in our string).
     # - 5. If the place occupied by j in P2 has already been filled in the offspring by an element k, put i in the position occupied by k in P2.
-    for i in range(crossoverPoint1, crossoverPoint2):
-        val = P2[i]
-        if not val in offspring:
-            j = _pmxIndex(i, P2, offspring)
-            offspring[j] = val
+            if offspring[ P2.index(j) ] is None: # Probably wrong
+                offspring[ P2.index(j) ] = i
+            else:
 
-    # Filling the rest of  the offspring with the rest from P2
-    for i in range(len(offspring)):
-        if offspring[i] is None:
-            offspring[i] = P2[i]
-    
     return offspring
 
 
 
-def _pmxIndex(i, P, offspring): # lookIn = 0: Look in offspring, lookIn = 1: Look in P
-    # currentVal = P[i]
-    if offspring[i] == None:
-        # offspring[i] = currentVal
-        return i
-    else:
-        i = P.index(offspring[i])
-        return _pmxIndex(i, P, offspring)
-    return i
 
             
 def edgeCrossover():
