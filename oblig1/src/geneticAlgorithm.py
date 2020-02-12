@@ -130,16 +130,30 @@ def pmx(P1, P2, c1 = None, c2 = None): # - Partially Mapped Crossover
     offspring = [None for i in range(0, len(P1))]
     offspring[crossoverPoint1 : crossoverPoint2] = segment
     
+    # print(f"P1: {P1}, \nP2: {P2}, \noffspring: {offspring}") # - Debug
     # - 2. Starting from the first crossover point look for elements in that segment of the second parent (P2) that have not been copied.
-    for i in P2[c1:c2]:
-        if i not in offspring:
+    for i in P2[ crossoverPoint1 : crossoverPoint2 ]:
+        # print(f"i: {i}") # - Debug
     # - 3. For each of these (say i), look in the offspring to see what element (say j) has been copied in its place from P1.
+        if i not in offspring:
             j = offspring[ P2.index(i) ]
+            # print(f"j: {j}") # - Debug
+
     # - 4. Place i into the position occupied by j in P2, since we know that we will not be putting j there (as we already have it in our string).
-    # - 5. If the place occupied by j in P2 has already been filled in the offspring by an element k, put i in the position occupied by k in P2.
-            if offspring[ P2.index(j) ] is None: # Probably wrong
+            # IP.embed()
+            if offspring[ P2.index(j) ] is None:
                 offspring[ P2.index(j) ] = i
+    # - 5. If the place occupied by j in P2 has already been filled in the offspring by an element k, put i in the position occupied by k in P2.
             else:
+                k = offspring[P2.index(j)]
+                # print(f"k: {k}")
+                offspring[P2.index(k)] = i
+        # print(f"offspring: {offspring}") # - Debug 
+
+    for i in range(len(offspring)):
+        if offspring[i] == None:
+            offspring[i] = P2[i]
+
 
     return offspring
 
@@ -186,7 +200,7 @@ if __name__ == "__main__":
     print("Constants")
     popSizes = (4, 15, 100)
     iterations = int( 1e3 )
-    subsetSizes = (5, 24)
+    subsetSizes = (10, 24)
     startCity = 0
     mutationP = 0.01
     print(f"    popSizes: {popSizes}, iterations: {iterations}, subsetSizes: {subsetSizes}, startCity: {startCity}")
@@ -238,8 +252,10 @@ if __name__ == "__main__":
     # Recombination
         # print("\nRecombination")
         offsprings = []
+        partner1 = partner2 = 0
         while len(offsprings) < popSize:
-            partner1, partner2 = np.random.randint(0, len(parents), size=2)
+            while partner1 == partner2: # TODO : make more efficient
+                partner1, partner2 = np.random.randint(0, len(parents), size=2)
             offsprings.append(pmx(parents[ partner1 ], parents[ partner2 ]))
         
         # print(f"offspring: {offsprings}")
@@ -259,19 +275,19 @@ if __name__ == "__main__":
         # print(f"i: {i}")
 
     # Test
-        if len(offsprings) != popSize:
-            print(f"len offsprings ({len(offsprings)}) is not equal popSize ({popSize})")
-            raise ValueError()
-        for offspring in offsprings:
-            if len(offspring) != subsetSize-1:
-                print(f"len offspring ({len(offspring)}) is not equal subsetSize ({subsetSize})")
-                raise ValueError()
+        # if len(offsprings) != popSize:
+        #     print(f"len offsprings ({len(offsprings)}) is not equal popSize ({popSize})")
+        #     raise ValueError()
+        # for offspring in offsprings:
+        #     if len(offspring) != subsetSize:
+        #         print(f"len offspring ({len(offspring)}) is not equal subsetSize ({subsetSize})")
+        #         raise ValueError()
     # End loop
 
     # Termination
     print(best)
 
-    print(scores[:10])
+    # print(scores[:10])
     plt.plot(np.arange(iterations), scores)
     plt.show()
 

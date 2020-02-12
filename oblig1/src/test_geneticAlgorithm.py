@@ -14,7 +14,7 @@ def test_crash():
         while a == b:
             random.shuffle(b)
         # print("here")
-        tmp = pmx(a,b)
+        tmp = GA.pmx(a,b)
         if None in tmp:
             print(f"Err: len(a):{len(a)}, len(b):{len(b)}, k:{k}\n    a:{a}\n    b:{b}\n    tmp:{tmp}")
         if k % (n//10) == 0:
@@ -27,10 +27,18 @@ def test_pmx():
     P2 = [9, 3, 7, 8, 2, 6, 5, 1, 4]
     expectedOffspring = [9, 3, 2, 4, 5, 6, 7, 1, 8]
     calculatedOffspring = GA.pmx(P1, P2, c1, c2)
-    assert calculatedOffspring == expectedOffspring
+    msg = f"expected: {expectedOffspring}, calculated: {calculatedOffspring}"
+    assert calculatedOffspring == expectedOffspring, msg
 
-    P1 = P1
-    P2 = [5,4,6,9,2,1,7,8,3]
+    for i in range(10,100):
+        P1 = P2 = [0]
+        for _ in range(100):
+            P1 = [i for i in range(10, 100)]
+            P2 = [i for i in range(10, 100)]
+            while P1 == P2:
+                random.shuffle( P1 )
+                random.shuffle( P2 )
+            GA.pmx(P1, P2)
 
     print(calculatedOffspring)
 
@@ -49,6 +57,6 @@ def test_inversionMutation_consistency():
 
 
 if __name__ == "__main__":
-    # test_crash()
+    test_crash()
     test_inversionMutation_consistency()
     test_pmx()
