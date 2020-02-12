@@ -32,7 +32,9 @@ def writeResults(results, fileName):
 def get_representation(df):
     cities = df.columns
     n = len(cities)
-    return [i+1 for i in range(n-1)]
+    return [i for i in range(n)] # here \
+
+
 
 
 if __name__ == "__main__":

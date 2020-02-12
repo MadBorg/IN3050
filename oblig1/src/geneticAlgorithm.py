@@ -45,24 +45,24 @@ def scrambleMutation(genotype):
     """
     Here the entire chromosome, or some randomly chosen subset of values within it, have their positions scrambled.
     """
-    print(f"\nStart - Genotype: {genotype}") # - Debug
+    # print(f"\nStart - Genotype: {genotype}") # - Debug
     subsetSize = np.random.randint(2, len(genotype))
     start = np.random.randint(0, len(genotype))
     # subsetSize = start = 3
-    print(f"subsetSize: {subsetSize}, start: {start}") # - Debug
+    # print(f"subsetSize: {subsetSize}, start: {start}") # - Debug
 
     # Getting a subset, treating it as a linked list
     if start + subsetSize > len(genotype):
-        print("start + subsetSize > len(genotype)") # - Debug
+        # print("start + subsetSize > len(genotype)") # - Debug
         subset = genotype[start:]
         subset = subset + genotype[:subsetSize - len(subset)]
     else:
         subset = genotype[start:start+subsetSize]
-    print(f"subset: {subset}") # - Debug
+    # print(f"subset: {subset}") # - Debug
 
     # Scramble
     random.shuffle(subset)
-    print(f"subsetShuffle: {subset}") # - Debug
+    # print(f"subsetShuffle: {subset}") # - Debug
 
     # genotype = [a,b,c,d,e], Start = 3, subsetSize = 3, subset = [d, e, a]
     # Inserting subset back
@@ -73,31 +73,31 @@ def scrambleMutation(genotype):
     else:
         genotype[start:start+subsetSize] = subset[:]
 
-    print(f"End of genotype: {genotype}") # - Debug
+    # print(f"End of genotype: {genotype}") # - Debug
     
 
 def inverstionMutation(genotype):
     """
     Inversion mutation works by randomly selecting two positions in the chromosome and reversing the order in which the values appear between those positions. 
     """
-    print(f"\nStart - Genotype: {genotype}") # - Debug
+    # print(f"\nStart - Genotype: {genotype}") # - Debug
     subsetSize = np.random.randint(2, len(genotype))
     start = np.random.randint(0, len(genotype))
     # subsetSize = start = 3
-    print(f"subsetSize: {subsetSize}, start: {start}") # - Debug
+    # print(f"subsetSize: {subsetSize}, start: {start}") # - Debug
 
     # Getting a subset, treating it as a linked list
     if start + subsetSize > len(genotype):
-        print("start + subsetSize > len(genotype)") # - Debug
+        # print("start + subsetSize > len(genotype)") # - Debug
         subset = genotype[start:]
         subset = subset + genotype[:subsetSize - len(subset)]
     else:
         subset = genotype[start:start+subsetSize]
-    print(f"subset: {subset}") # - Debug
+    # print(f"subset: {subset}") # - Debug
 
     # Inversion
     subset.reverse()
-    print(f"reversedSubset: {subset}") # - Debug
+    # print(f"reversedSubset: {subset}") # - Debug
 
     # genotype = [a,b,c,d,e], Start = 3, subsetSize = 3, subset = [d, e, a]
     # Inserting subset back
@@ -107,17 +107,22 @@ def inverstionMutation(genotype):
         genotype[: len(subset[len( genotype[start:] ): ])] = subset[len( genotype[start:] ):]
     else:
         genotype[start:start+subsetSize] = subset[:]
-    print(f"End of genotype: {genotype}") # - Debug
+    # print(f"End of genotype: {genotype}") # - Debug
 
 
 
 # Crossover - Recombination
-def pmx(P1, P2): # - Partially Mapped Crossover
+def pmx(P1, P2, c1 = None, c2 = None): # - Partially Mapped Crossover
 
     # - 1. Choose two crossover points at random, and copy the segment between them from the first parent (P1) into the first offspring.
-    crossoverPoint1 = np.random.randint(0, len(P1)-1)
-    crossoverPoint2 = np.random.randint(crossoverPoint1 + 1, len(P1)) # To make sure the points are valis and avoids index error. Culd also be solved by treating the lists as sircular linked lists.
-
+    if c1 is None:
+        crossoverPoint1 = np.random.randint(0, len(P1)-1)
+    else:
+        crossoverPoint1 = c1
+    if c2 is None:
+        crossoverPoint2 = np.random.randint(crossoverPoint1 + 1, len(P1)) # To make sure the points are valis and avoids index error. Culd also be solved by treating the lists as sircular linked lists.
+    else:
+        crossoverPoint2 = c2
     # crossoverPoint1 = 3 # - Debug
     # crossoverPoint2 = 7 # - Debug
 
@@ -131,7 +136,6 @@ def pmx(P1, P2): # - Partially Mapped Crossover
     # - 5. If the place occupied by j in P2 has already been filled in the offspring by an element k, put i in the position occupied by k in P2.
     for i in range(crossoverPoint1, crossoverPoint2):
         val = P2[i]
-        # vacant = False
         if not val in offspring:
             j = _pmxIndex(i, P2, offspring)
             offspring[j] = val
@@ -171,7 +175,7 @@ def rankBasedSelection( pop, fit_values, selection_factor = 0.5 ):
     Using initial order of the candidates, witch is the indices of each candidate. 
     """
     n = len(pop)
-    order = [i for i in range(n)] # Using order instead of moving pop around.
+    order = [i for i in range(n)] # Using order instead of moving pop around. # nott  needed
 
     # Sort pop after rank, with the fit values
     fit_values, sorted_order = zip(*sorted(zip(fit_values, order))) # https://stackoverflow.com/questions/5284183/python-sort-list-with-parallel-list
@@ -193,15 +197,16 @@ def rankBasedSelection( pop, fit_values, selection_factor = 0.5 ):
 if __name__ == "__main__":
     # Constants (variables)
     print("Constants")
-    popSizes = (10, 15, 100)
+    popSizes = (4, 15, 100)
     iterations = int( 1e3 )
-    subsetSizes = (10, 24)
+    subsetSizes = (5, 24)
     startCity = 0
     mutationP = 0.01
     print(f"    popSizes: {popSizes}, iterations: {iterations}, subsetSizes: {subsetSizes}, startCity: {startCity}")
 
     # Constants for evaluation
     scores = []
+    best = [-1]
 
     # Initializtion
     print("\nInitializtion")
@@ -221,7 +226,7 @@ if __name__ == "__main__":
     print("\nMaking chromosomes")
     pop = []
     for i in range(popSize):
-        pop.append([i for i in range(subsetSize)])
+        pop.append([i for i in range(1, subsetSize)])
         random.shuffle(pop[i])
     print(f"pop: {pop}")
        
@@ -236,46 +241,51 @@ if __name__ == "__main__":
             fitValues.append(data.fit([startCity] + candidate, cities_df)) # always the same start city
 
     # Save score for evaluation
-        scores.append(fitValues[:])
+        scores.append(min(fitValues[:]))
+        if min(fitValues) < best[0] or best[0] == -1:
+            i = fitValues.index(min(fitValues))
+            best = [min(fitValues), pop[i]]
     # Parent Selection - Rank based Selection
         parents = rankBasedSelection(pop, fitValues[:]) 
         
     # Recombination
-        print("\nRecombination")
+        # print("\nRecombination")
         offsprings = []
         while len(offsprings) < popSize:
             partner1, partner2 = np.random.randint(0, len(parents), size=2)
             offsprings.append(pmx(parents[ partner1 ], parents[ partner2 ]))
         
-        print(f"offspring: {offsprings}")
+        # print(f"offspring: {offsprings}")
         
     # Mutation
-        print("\nMutation")
+        # print("\nMutation")
         P = np.random.random(size=popSize)
         for i in range(popSize):
             if P[i] < mutationP:
                 inverstionMutation(offsprings[i])
-        print(f"\nMutated: {offsprings}")
+        # print(f"\nMutated: {offsprings}")
     # Offspring
 
     # Survivor selection
         pop = offsprings[:]
     # Show progress:
-        print(f"i: {i}")
+        # print(f"i: {i}")
 
     # Test
         if len(offsprings) != popSize:
             print(f"len offsprings ({len(offsprings)}) is not equal popSize ({popSize})")
             raise ValueError()
         for offspring in offsprings:
-            if len(offspring) != subsetSize:
+            if len(offspring) != subsetSize-1:
                 print(f"len offspring ({len(offspring)}) is not equal subsetSize ({subsetSize})")
                 raise ValueError()
     # End loop
 
     # Termination
-    for score in zip(*scores):
-        plt.plot(np.arange(iterations), score)
+    print(best)
+
+    print(scores[:10])
+    plt.plot(np.arange(iterations), scores)
     plt.show()
 
 
