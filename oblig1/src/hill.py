@@ -52,7 +52,7 @@ if __name__ == "__main__":
         endTime = time.time()
 
         timeData[i] = endTime - startTime
-        results[i] = {"time": timeData[i], "bestScore": bestScore, "bestPath": bestPath"}
+        results[i] = {"time": timeData[i], "bestScore": bestScore, "bestPath": bestPath}
         print(f"i: {i}, time: {timeData[i]}, bestScore: {bestScore}, bestPath {bestPath}")
     
     totTime = time.time() - totTimeStart
