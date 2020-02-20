@@ -17,18 +17,31 @@ def test_crash():
         tmp = GA.pmx(a,b)
         if None in tmp:
             print(f"Err: len(a):{len(a)}, len(b):{len(b)}, k:{k}\n    a:{a}\n    b:{b}\n    tmp:{tmp}")
-        if k % (n//10) == 0:
-            print(f"{k}")
+        # if k % (n//10) == 0:
+        #   print(f"{k}")
 
 def test_pmx():
     c1 = 3
-    c2 = 7
+    c2 = 6
     P1 = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     P2 = [9, 3, 7, 8, 2, 6, 5, 1, 4]
     expectedOffspring = [9, 3, 2, 4, 5, 6, 7, 1, 8]
     calculatedOffspring = GA.pmx(P1, P2, c1, c2)
-    msg = f"expected: {expectedOffspring}, calculated: {calculatedOffspring}"
-    assert calculatedOffspring == expectedOffspring, msg
+
+    assert calculatedOffspring == expectedOffspring, f"expected: {expectedOffspring}, " \
+                                                     f"calculated: {calculatedOffspring}\n" \
+                                                     f"P1: {P1}, P2: {P2}, C1:{c1}, C2:{c2}"
+
+    c1 = 3
+    c2 = 7
+    P1 = [8, 4, 7, 3, 6, 2, 5, 1, 9, 0]
+    P2 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    expectedOffspring = [0, 7, 4, 3, 6, 2, 5, 1, 8, 9]
+    calculatedOffspring = GA.pmx(P1, P2, c1, c2)
+    assert expectedOffspring == calculatedOffspring, f"expected: {expectedOffspring}, " \
+                                                     f"calculated: {calculatedOffspring}\n" \
+                                                     f"P1: {P1}, P2: {P2}, C1:{c1}, C2:{c2}"
+
 
     for i in range(10,100):
         P1 = P2 = [0]
@@ -57,6 +70,6 @@ def test_inversionMutation_consistency():
 
 
 if __name__ == "__main__":
-    test_crash()
-    test_inversionMutation_consistency()
+    # test_crash()
+    # test_inversionMutation_consistency()
     test_pmx()

@@ -114,49 +114,71 @@ def inverstionMutation(genotype):
 
 # Crossover - Recombination
 def pmx(P1, P2, c1=None, c2=None):  # - Partially Mapped Crossover
+    print(f"pmx:")
+    print(f"  P1: {P1},\n  P2: {P2},\n  c1: {c1}, c2: {c2}")
 
-    # - 1. Choose two crossover points at random, and copy the segment between them from the first parent (P1) into the first offspring.
+    # - 1.
     if c1 is None:
-        crossoverPoint1 = np.random.randint(0, len(P1) - 1)
-    else:
-        crossoverPoint1 = c1
+        c1 = np.random.randint(0, len(P1))
     if c2 is None:
-        crossoverPoint2 = np.random.randint(crossoverPoint1 + 1, len(
-            P1))  # To make sure the points are valis and avoids index error. Culd also be solved by treating the lists as sircular linked lists.
-    else:
-        crossoverPoint2 = c2
-    # crossoverPoint1 = 3 # - Debug
-    # crossoverPoint2 = 7 # - Debug
+        c2 = np.random.randint(0, len(P1))  
 
-    segment = P1[crossoverPoint1: crossoverPoint2]
-    offspring = [None for i in range(0, len(P1))]
-    offspring[crossoverPoint1: crossoverPoint2] = segment
-
-    # print(f"P1: {P1}, \nP2: {P2}, \noffspring: {offspring}") # - Debug
-    # - 2. Starting from the first crossover point look for elements in that segment of the second parent (P2) that have not been copied.
+    crossoverPoint1 = min((c1, c2))
+    crossoverPoint2 = max((c1, c2))
+    print(f"  crossoverpoints: {(c1, c2)}")
+    segment = P1[crossoverPoint1: crossoverPoint2 + 1]
+    # Making the offspringv
+    offspring = [None for _ in range(0, len(P1))]
+    offspring[crossoverPoint1: crossoverPoint2+1] = segment
+    print(f"  Offspring after inserted segment: {offspring}")
+    print(f"  Entering loop")
+    # - 2.
     for i in P2[crossoverPoint1: crossoverPoint2]:
-        # print(f"i: {i}") # - Debug
-        # - 3. For each of these (say i), look in the offspring to see what element (say j) has been copied in its place from P1.
+        # Looking in the same segment positions in parent 2, select each value that hasn't already been copied to the child.
         if i not in offspring:
+            print(f"     offspring: {offspring}")
+    # - 3. 
+            print(f"    i: {i}, i = P2[crossoverPoint1: crossoverPoint2]")
             j = offspring[P2.index(i)]
-            # print(f"j: {j}") # - Debug
-
-            # - 4. Place i into the position occupied by j in P2, since we know that we will not be putting j there (as we already have it in our string).
-            # IP.embed()
-            if offspring[P2.index(j)] is None:
-                offspring[P2.index(j)] = i
-            # - 5. If the place occupied by j in P2 has already been filled in the offspring by an element k, put i in the position occupied by k in P2.
+            print(f"    j: {j}, P1.index(i): {P2.index(i)}")
+            j_in_P2_index = P2.index(j)
+            print(f"    j_in_P2_index: {j_in_P2_index}")
+    # - 4, 5
+            k = offspring[P2.index(j)]
+            print(f"    k: {k}")
+            if k is None:
+                offspring[j_in_P2_index] = i
             else:
-                k = offspring[P2.index(j)]
-                # print(f"k: {k}")
-                offspring[P2.index(k)] = i
-        # print(f"offspring: {offspring}") # - Debug 
-
-    for i in range(len(offspring)):
-        if offspring[i] == None:
+                print(f"    offspring[P2.index(k)]: {offspring[P2.index(k)]}")
+                offspring[P2.index(k)]= i
+    # - 6
+    print(f"  Loop ended, and adding rest from p2, offspring: {offspring}")
+    for i in range(0,len(P1)):
+        if offspring[i] is None:
             offspring[i] = P2[i]
+    print(f"  After adding rest of p2 to offspring: {offspring}")
 
     return offspring
+
+
+# def pmx_helper(val, p1, p2, c1, c2, r):
+#     print(f"\n    pmx helper:")
+#     p2_index_val = p2.index(val)
+#     v = p1[p2_index_val]
+#     same_val_P2_index = p2.index(v)
+#     print(f"      val: {val}, p1: {p1}, p2: {p2}"
+#           f", c1: {c1}, c2: {c2}, v: {v}, "
+#           f"same_val_P2_index: {same_val_P2_index}, p2_index_val: {p2_index_val}"
+#           )
+#     if v == None:
+#         raise ValueError(" v is none")
+
+#     if same_val_P2_index in range(c1, c2):
+#         r = pmx_helper(v, p1, p2, c1, c2, r)
+#     else:
+#         r = [same_val_P2_index, val]
+#         print(f"    pmx helper return r: {r}")
+#         return r
 
 
 def edgeCrossover():
@@ -177,13 +199,15 @@ def rankBasedSelection(population, fit_values, selection_factor=0.5):
     Making a mapping of the population. So that we can get the right index out without changing order in population, and dont have to move the whole population around
     """
     n = len(population)
-    mapping = tuple(range(0, len(population)))  # Since pop is the whole population. Making a id for each path to be sorted with the corresponding fit value
+    mapping = tuple(range(0, len(
+        population)))  # Since pop is the whole population. Making a id for each path to be sorted with the corresponding fit value
 
     # Sort map after rank, with the fit values
-    fit_values, mapping = zip(*sorted(zip(fit_values[:], mapping)))  # https://stackoverflow.com/questions/5284183/python-sort-list-with-parallel-list
+    fit_values, mapping = zip(*sorted(
+        zip(fit_values[:], mapping)))  # https://stackoverflow.com/questions/5284183/python-sort-list-with-parallel-list
 
     # Selection
-    p = np.array([n-i for i in range(n)])
+    p = np.array([n - i for i in range(n)])
     p = p / np.sum(p)  # Cumulative prob
     parentsMap = np.random.choice(mapping, p=p, size=int(n * selection_factor), replace=False)
     # print(f"p: {p}") # - Debug
@@ -202,10 +226,10 @@ if __name__ == "__main__":
     # Constants (variables)
     print("Constants")
     popSizes = (4, 15, 100)
-    iterations = int(1e1)
+    iterations = int(1e10)
     subsetSizes = (10, 24)
     startCity = 0
-    mutationP = 0.1
+    mutationP = 0.05
     print(f"    popSizes: {popSizes}, iterations: {iterations}, subsetSizes: {subsetSizes}, startCity: {startCity}")
 
     # Constants for evaluation
@@ -241,7 +265,7 @@ if __name__ == "__main__":
     for mainIndex in range(iterations):
         print(f"i: {mainIndex}")
         # Population - Evaluate each candidate
-        fitValues = [] # Scores of all candidates this iteration
+        fitValues = []  # Scores of all candidates this iteration
         for candidate in pop:  # Might be improved with map, witch might need to use a lambda function
             fitValues.append(data.fit([startCity] + candidate, cities_df))  # always the same start city
         # - Debug
@@ -258,7 +282,7 @@ if __name__ == "__main__":
             """
             bestPathIndex = fitValues.index(min(fitValues))
             bestScore = min(fitValues)
-            bestPath = pop[ bestPathIndex ][:]
+            bestPath = pop[bestPathIndex][:]
 
         # Parent Selection - Rank based Selection
         parents = rankBasedSelection(pop, fitValues)
@@ -279,20 +303,22 @@ if __name__ == "__main__":
             """
             Choosing two parents at random to mate, and generate twins.
             """
-            partnerIndex1, partnerIndex2 = np.random.choice(range(0, len(parents)), size=2) # Choosing two parents to mate
-            offspring1 = pmx( parents[partnerIndex1], parents[partnerIndex2] )
-            offspring2 = pmx( parents[partnerIndex2], parents[partnerIndex1] )
+            partnerIndex1, partnerIndex2 = np.random.choice(range(0, len(parents)),
+                                                            size=2)  # Choosing two parents to mate
+            offspring1 = pmx(parents[partnerIndex1], parents[partnerIndex2])
+            offspring2 = pmx(parents[partnerIndex2], parents[partnerIndex1])
             offsprings.append(offspring1)
             offsprings.append(offspring2)
         for _ in range(numberOfLonelyChildren):  # Range(0) skips the loop
             """
             Making sure pop size keeps stable
             """
-            partnerIndex1, partnerIndex2 = np.random.choice(range(0, len(parents)), size=2)  # Choosing two parents to mate, making lonley child
-            offspring = pmx( parents[partnerIndex1], parents[partnerIndex2] )
+            partnerIndex1, partnerIndex2 = np.random.choice(range(0, len(parents)),
+                                                            size=2)  # Choosing two parents to mate, making lonley child
+            offspring = pmx(parents[partnerIndex1], parents[partnerIndex2])
             offsprings.append(offspring)
         # Test if len(offsprings) == popSize, to make sure popSize will be stable
-        assert len(offsprings) == popSize,  \
+        assert len(offsprings) == popSize, \
             f"i: {i}, len(offsprings): {len(offsprings)}, popSize: {popSize}, len(parents): {len(parents)}"
         # - Debug
         print(f"  Offsprings:")
@@ -309,12 +335,10 @@ if __name__ == "__main__":
                 print(f"    {offsprings[j]}")
         # - Debug
 
-
         # Offspring
 
         # Survivor selection
         pop = offsprings[:]
-
 
     # Show progress:
     # print(f"i: {i}")
