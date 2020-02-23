@@ -7,8 +7,8 @@ import data as data
 import IPython as IP  # - for debug
 
 # Seeds
-np.random.seed(178)
-random.seed(10)
+# np.random.seed(178)
+# random.seed(10)
 
 
 # mutation
@@ -114,8 +114,8 @@ def inverstionMutation(genotype):
 
 # Crossover - Recombination
 def pmx(P1, P2, c1=None, c2=None):  # - Partially Mapped Crossover
-    print(f"pmx:")
-    print(f"  P1: {P1},\n  P2: {P2},\n  c1: {c1}, c2: {c2}")
+    # print(f"pmx:")
+    # print(f"  P1: {P1},\n  P2: {P2},\n  c1: {c1}, c2: {c2}")
 
     # - 1.
     if c1 is None:
@@ -125,38 +125,42 @@ def pmx(P1, P2, c1=None, c2=None):  # - Partially Mapped Crossover
 
     crossoverPoint1 = min((c1, c2))
     crossoverPoint2 = max((c1, c2))
-    print(f"  crossoverpoints: {(c1, c2)}")
+    # print(f"  crossoverpoints: {(c1, c2)}")
     segment = P1[crossoverPoint1: crossoverPoint2 + 1]
     # Making the offspringv
     offspring = [None for _ in range(0, len(P1))]
     offspring[crossoverPoint1: crossoverPoint2+1] = segment
-    print(f"  Offspring after inserted segment: {offspring}")
-    print(f"  Entering loop")
+
     # - 2.
-    for i in P2[crossoverPoint1: crossoverPoint2]:
+    for P2val in P2[crossoverPoint1: crossoverPoint2 +1]:
         # Looking in the same segment positions in parent 2, select each value that hasn't already been copied to the child.
-        if i not in offspring:
-            print(f"     offspring: {offspring}")
-    # - 3. 
-            print(f"    i: {i}, i = P2[crossoverPoint1: crossoverPoint2]")
-            j = offspring[P2.index(i)]
-            print(f"    j: {j}, P1.index(i): {P2.index(i)}")
-            j_in_P2_index = P2.index(j)
-            print(f"    j_in_P2_index: {j_in_P2_index}")
-    # - 4, 5
-            k = offspring[P2.index(j)]
-            print(f"    k: {k}")
-            if k is None:
-                offspring[j_in_P2_index] = i
-            else:
-                print(f"    offspring[P2.index(k)]: {offspring[P2.index(k)]}")
-                offspring[P2.index(k)]= i
+        if P2val not in offspring:
+            val = P2val
+            # print(f"    val (from p2Val): {val}, offspring: {offspring}")
+            placed = False
+            while not placed:
+                index_P2val = P2.index(val)
+                # print(f"    index_P2val: {index_P2val}")
+                v = P1[index_P2val]
+                # print(f"    v: {v}")
+                index_v_P2 = P2.index(v)
+                # print(f"    index_v_P2: {index_v_P2}")
+                if index_P2val in range(crossoverPoint1, crossoverPoint2 +1):
+                    val = v
+                    # print(f"    val: {val}")
+                else:
+                    offspring[index_P2val] = P2val
+                    # print(f"    Inserting {P2val} into offspring: {offspring}")
+                    placed = True
+                # print("\n")
+
+
     # - 6
-    print(f"  Loop ended, and adding rest from p2, offspring: {offspring}")
+    # print(f"  Loop ended, and adding rest from p2, offspring: {offspring}")
     for i in range(0,len(P1)):
         if offspring[i] is None:
             offspring[i] = P2[i]
-    print(f"  After adding rest of p2 to offspring: {offspring}")
+    # print(f"  After adding rest of p2 to offspring: {offspring}")
 
     return offspring
 
@@ -217,7 +221,148 @@ def rankBasedSelection(population, fit_values, selection_factor=0.5):
         chosenParents.append(population[i])
     return chosenParents
 
+def geneticAlgorithm(popSize, iterations, subsetSize, mutationP, debug = False, verbose = False):
+    
+    # Assumptions
+    # popSize
+    assert popSize > 0, "popSize must be larger than 0!"
+    #iterations
+    assert type(iterations) is int, f"iterations must be int not: {type(iterations)}"
+    assert iterations > 0, f"iterations must be larger than 0! Given val {iterations}"
+    # subsetSizes
+    assert type(subsetSize) is int, f"subsetSize must be int, not: {type(subsetSize)}"
+    assert subsetSize > 0, f"subsetSize must be larger than 0! Given val {subsetSize}"
+    # mutationP
+    try:
+        _ = float(mutationP)
+    except TypeError:
+        print(f"mutationP must be a number. Given val {mutationP}")
+    assert mutationP <= 1 and mutationP >= 0, f"mutationP must be between 0 and 1 (must be a probability)! Given val: {mutationP}"
+    # Debug
+    assert type(debug) is bool or debug == 1 or debug == 0, f"debug must be a bool or similar! Given was: {debug}"
 
+    # Constants
+    startCity = 0
+
+    # Storing values
+    if debug: print("init values for storing cores")
+    minScores = []  # min scores for each iterations
+    bestScore = -1  # Best score after all iterations
+    bestCandidate = []  # the path with the best score
+    if debug: print(f"  minScores: {minScores}, bestScore: {bestScore}, bestPath: {[startCity] + bestCandidate}")
+
+    # Getting cities data
+    if debug: print("Getting cities data")
+    cities_df = data.data_subset(data.path_to_datafile, sub=subsetSize)
+    cities_representation = data.get_representation(cities_df)
+    if debug: print(f"  cities_df: {cities_df}, cities_representation: {cities_representation}")
+
+    # Making chromosomes with no bias
+    if debug: print("Making chromosomes")
+    pop = []
+    for i in range(popSize):  # Might be done with a map or numpy to be made faster
+        pop.append([i for i in range(1, subsetSize)])  # without 0 since that is the start city
+        random.shuffle(pop[i])
+    if debug: print(f"  pop: {pop}")
+
+    # Starting GA loop
+    if verbose: print(f"Starting algorithm with: \n" +
+        f"  popSize: {popSize}, subsetSize: {subsetSize}, mutationP: {mutationP}, iterations: {iterations} \n"
+    )
+    for mainIndex in range(iterations):
+        if debug: print("\n")
+        # if iterations % (iterations // 100) == 0: print(f"i: {mainIndex}")
+    
+        # Population - Evaluate each candidate
+        if debug: print("Evaluating each candidate. (assigning fit values). Path is including start city")
+        fitValues = []  # Scores of all candidates this iteration
+        for candidate in pop:  # Might be improved with map, witch might need to use a lambda function
+            fitValues.append(data.fit([startCity] + candidate, cities_df))  # always the same start city
+        if debug:
+            for i in range(len(pop)):
+                print(f"  fitVal: {fitValues[i]}, path: {[startCity] + pop[i]}")
+
+        # Save score for evaluation
+        if debug: print("Saving scores for evaluation")
+        minScores.append(min(fitValues))
+        if min(fitValues) < bestScore or mainIndex == 0:
+            """
+            If the min of the fit values is smaller then the current smallest replace the bestScore, or if it is the first iteration.
+            This can be alleviated by calculating fit values before the loop.
+            """
+            bestCandidateIndex = fitValues.index(min(fitValues))
+            bestScore = min(fitValues)
+            bestCandidate = pop[bestCandidateIndex][:]
+            if debug: print(f"  bestScore: {bestScore}, bestPath: {[startCity] + bestCandidate}")
+            
+        # Parent Selection - Rank based Selection
+        if debug: print("Parent Selection - Rank bases Selection")
+        parents = rankBasedSelection(pop, fitValues)
+        if debug:
+            for parent in parents:
+                print(f" parent: {parent}")
+
+        # Recombination TODO : Ask if some children should survive
+        if debug: print("Recombination - Making offsprings off parents")
+        """
+        Choosing parents to mate. No parents survive, only makes children
+        """
+        offsprings = []
+        numberOfTwinMatings = popSize // 2  # we wish each parent couple to have two children
+        numberOfLonelyChildren = popSize % 2  # To keep popSize stable, will max be 1 but keeping it general
+        if debug: print(f"  numberOfTwinMatings: {numberOfTwinMatings} , numberOfLonelyChildren: {numberOfLonelyChildren} ")
+        for _ in range(numberOfTwinMatings):
+            """
+            Choosing two parents at random to mate, and generate twins.
+            """
+            partnerIndex1, partnerIndex2 = np.random.choice(range(0, len(parents)),
+                                                            size=2)  # Choosing two parents to mate
+            offspring1 = pmx(parents[partnerIndex1], parents[partnerIndex2])
+            offspring2 = pmx(parents[partnerIndex2], parents[partnerIndex1])
+            offsprings.append(offspring1)
+            offsprings.append(offspring2)
+        if debug: print(f"  offsprings (only twins): {offsprings}")
+        for _ in range(numberOfLonelyChildren):  # Range(0) skips the loop
+            """
+            Making sure pop size keeps stable
+            """
+            partnerIndex1, partnerIndex2 = np.random.choice(range(0, len(parents)),
+                                                            size=2)  # Choosing two parents to mate, making lonley child
+            offspring = pmx(parents[partnerIndex1], parents[partnerIndex2])
+            offsprings.append(offspring)
+        if debug: print(f"  offsprings: {offsprings}")
+        assert len(offsprings) == popSize, f"len(offsprings) != popSize\n  len(offsprings): {offsprings}\n  popSize: {popSize}"
+
+        # Mutation
+        if debug: print("Mutation")
+        P = np.random.random(size=popSize)
+        for j in range(popSize):
+            if P[j] < mutationP:
+                if debug: print(f"  Mutating: {offsprings[j]}")
+                inverstionMutation(offsprings[j])
+                if debug: print(f"  Mutated: {offsprings[j]}")
+        
+
+        # Survivor selection
+        if debug: print(f"New population")
+        pop = offsprings[:]
+        if debug: print(f"  pop: {pop}")
+
+    # r = { # Best Scores
+    #     "minScores" : minScores,
+    #     "bestScore": bestScore, 
+    #     "bestPath": [startCity] + bestCandidate
+    #     }
+    r = { # Last scores
+        "minScores": minScores,
+        "bestScore": min(fitValues),
+        "bestPath": [startCity] + pop[fitValues.index(min(fitValues))]
+    }
+    return r
+
+        
+        
+        
 if __name__ == "__main__":
     """
     PoP is without start city, start city is only added when the score is calculated
@@ -225,11 +370,11 @@ if __name__ == "__main__":
     """
     # Constants (variables)
     print("Constants")
-    popSizes = (4, 15, 100)
-    iterations = int(1e10)
+    popSizes = (10, 15, 100)
+    iterations = int(1e3)
     subsetSizes = (10, 24)
     startCity = 0
-    mutationP = 0.05
+    mutationP = 0.1
     print(f"    popSizes: {popSizes}, iterations: {iterations}, subsetSizes: {subsetSizes}, startCity: {startCity}")
 
     # Constants for evaluation
@@ -317,6 +462,7 @@ if __name__ == "__main__":
                                                             size=2)  # Choosing two parents to mate, making lonley child
             offspring = pmx(parents[partnerIndex1], parents[partnerIndex2])
             offsprings.append(offspring)
+
         # Test if len(offsprings) == popSize, to make sure popSize will be stable
         assert len(offsprings) == popSize, \
             f"i: {i}, len(offsprings): {len(offsprings)}, popSize: {popSize}, len(parents): {len(parents)}"
@@ -327,12 +473,12 @@ if __name__ == "__main__":
 
         # Mutation
         # print("\nMutation")
-        print("  Mutation: (on offspring)")
+        # print("  Mutation: (on offspring)")
         P = np.random.random(size=popSize)
         for j in range(popSize):
             if P[j] < mutationP:
                 inverstionMutation(offsprings[j])
-                print(f"    {offsprings[j]}")
+                # print(f"    {offsprings[j]}")
         # - Debug
 
         # Offspring

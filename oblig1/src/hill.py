@@ -1,34 +1,33 @@
 import IPython as IP
 # --
 import pandas as pd
-# import numpy as np
+import numpy as np
 import itertools
-# import multiprocessing
+
 import time
 import matplotlib.pyplot as plt
 import random
 import data as city_data 
 
 
-def hill(data, n = 10_000, t = 100):
+def hill(data, numberOfIterations = 10_000):
     cities = data.columns
     n = len(cities)
     cities_int = [i+1 for i in range(n-1)]
+    random.shuffle(cities_int)
     startCity = 0
 
-    # making somethoing to cange
     bestPath = currentPath = [startCity] + cities_int
     bestScore = currentScore = city_data.fit(currentPath, data)
-    print(f"startPath: {bestPath}, startScore: {bestScore}")
-    startTime = time.time()
 
-    # Running for time t
-    while time.time() - startTime < t:
-        pick1 = random.randint(1,n-1)
-        pick2 = random.randint(1,n-1)
+    pick1 = np.random.randint(1, n, size=numberOfIterations)
+    pick2 = np.random.randint(1, n, size=numberOfIterations)
+    for i in range(numberOfIterations):
+        p1 = pick1[i]
+        p2 = pick2[i]
 
         tmp = currentPath[:]
-        tmp[pick1], tmp[pick2] = tmp[pick2], tmp[pick1]
+        tmp[p1], tmp[p2] = tmp[p2], tmp[p1]
         currentScore = city_data.fit(tmp, data)
         
         if currentScore < bestScore:

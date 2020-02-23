@@ -7,7 +7,7 @@ import itertools
 import multiprocessing
 import time
 import matplotlib.pyplot as plt
-import src.data as city_data                                    
+import data as city_data                                    
 
 
 
@@ -19,7 +19,7 @@ def fit(path, data):
     cum += data.iloc[path[-1], path[0]]
     return cum
 
-def exhaustiveSearch(data):
+def exhaustiveSearchEngine(data):
     cities = data.columns
     n = len(cities)
     cities_int = [i+1 for i in range(n-1)]
@@ -29,7 +29,7 @@ def exhaustiveSearch(data):
     # IP.embed() # Debug
     bestPath = [startCity] + cities_int
     bestScore = fit(bestPath, data)
-    print(f"startPath: {bestPath}, startScore: {bestScore}")
+    # print(f"startPath: {bestPath}, startScore: {bestScore}")
     current = 0
     # generating all paths
     for perm in itertools.permutations(cities_int, n-1):
@@ -41,13 +41,19 @@ def exhaustiveSearch(data):
         current = 0
     return bestPath, bestScore
 
+def exhaustiveSearch(subset_size):
+    data_subset = city_data.data_subset(city_data.path_to_datafile, subset_size)
+    r = (bestPath, bestScore) = exhaustiveSearchEngine(data_subset)
+    return r
+
+
 if __name__ == "__main__":
 
     # # Getting time data from one szie subset
     # n = 4
     # data_subset = city_data.data_subset(city_data.path_to_datafile, n)
     # startTime = time.time()
-    # bestPath, bestScore = exhaustiveSearch(data_subset)
+    # bestPath, bestScore = exhaustiveSearchEngine(data_subset)
     # endTime = time.time()
     # timeData = endTime - startTime
     # print(f"\n\nn: {n}, time: {timeData}, bestScore: {bestScore}, bestPath {bestPath} \n\n")
@@ -56,12 +62,12 @@ if __name__ == "__main__":
     totTimeStart = time.time()
     timeData = {}
     results = {}
-    for i in range(3, 11):
+    for i in range(10, 11):
         data_subset = city_data.data_subset(city_data.path_to_datafile, i)
-        print(f"\nRunning exhaustiveSearch, with i: {i}")
+        print(f"\nRunning exhaustiveSearchEngine, with i: {i}")
 
         startTime = time.time()
-        bestPath, bestScore = exhaustiveSearch(data_subset)
+        bestPath, bestScore = exhaustiveSearchEngine(data_subset)
         endTime = time.time()
         
         timeData[i] = endTime - startTime

@@ -4,7 +4,7 @@ import datetime
 import json
 
 # path_to_datafile = "assignment01\\european_cities.csv"
-path_to_datafile = "oblig1\\assignment01\\european_cities.csv"
+path_to_datafile = "C:\\Users\\smart\\Documents\\GitRepos\\IN3050\\oblig1\\src\\european_cities.csv"
 
 # data = pd.read_csv(path_to_datafile, sep=";")
 
