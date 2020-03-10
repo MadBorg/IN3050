@@ -1,16 +1,17 @@
 import random
 
-class Genotype:
+class Genotype():
     """
     Representation:
         Permutation
     Evaluator:
         I have chosen to generalize so evaluator is not predefined in the class but must be given, in my task that is in the main.
     """
-    def __init__(self, representation, evaluator=None):
-        r = representation[:] # making sure not to change the original list
-        random.shuffle(r)
-        self._r = tuple(r)
+    def __init__(self,r=None, evaluator=None):
+        if r:
+            self._r = r
+        else:
+            self._r = None
         if evaluator:
             self.evaluator = evaluator
         
@@ -18,6 +19,17 @@ class Genotype:
 
     def __call__(self):
         return self.r
+
+    def __len__(self):
+        return len(self())
+    
+    def make_permutation(self, representation):
+        """
+        Making random premutation of the representation
+        """
+        r = representation[:]
+        random.shuffle(r)
+        self._r = tuple(r)
 
     # mutation - method
     # Swap Mutation
@@ -27,7 +39,8 @@ class Genotype:
 
     # Score 
     def calculate_score(self, df):
-        self._score = self.evaluator(self.r, df)     
+        score = self.evaluator(self.r, df)     
+        self._score = score
         return score   
 
     @property

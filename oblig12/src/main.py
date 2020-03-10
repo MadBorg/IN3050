@@ -2,10 +2,11 @@ import data
 import population
 import genotype
 
-"""     General information
+"""     __General information__
 Population:
     Representation: Permutation
 Recombine:
+    Number of parents must be even
     Number of parrents per offspring: 2
     PMX
 Mutation:
@@ -36,26 +37,38 @@ if __name__ == "__main__":
     """
     # -  Initialise
     # Variables
-    start_city = 0
+    number_of_generations = 100 # Number of iterations, break condition
+    start_city = 0 # TODO : implement for start city
     subset_sizes = [6, 10]
+    pop_size = 100
+    parent_selection_portion = 0.5
+    Noffsprings = 2*pop_size
 
     # Getting data
     cities_data = data.data()
     cities_data.read_csv(path_to_datafile)
     representation = cities_data.get_representation(1, subset_sizes[0])
+    subset_data = cities_data.get_subset(subset_sizes[0])
 
     # Population
-    current_population = population.Population(
-        genotype.Genotype,
-        representation,
-        fit
+    cur_population = population.Population(
+        Genotype = genotype.Genotype,
+        representation= representation,
+        evaluator = fit,
+        population_size = pop_size,
+        parent_selection_portion = parent_selection_portion,
+        number_of_offsprings = Noffsprings
     )
     # -  Evaluate
-    
+    cur_population.evaluate_population(df=subset_data)
     # -  Loop
+    for generation in range():
     # -  Parent Selection
+        cur_population.parent_selection()
     # -  Recombine - Crossover
+        cur_population.recombination()
     # -  Mutate
+        
     # -  Evaluate
     # -  Survivor Selection
     # -  endLoop

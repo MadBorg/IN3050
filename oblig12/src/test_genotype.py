@@ -2,21 +2,23 @@ import genotype as g
 import main
 import data
 
+
+N = 100
 df = data.data(main.path_to_datafile)
+evaluator = main.fit
+subset_size = 6
+rep = [i for i in range(0, 6)]
+
+objs = []
+for i in range(N):
+    obj = g.Genotype(evaluator)
+    obj.make_permutation(rep)
+
 
 def test_genotype_init():
     # Init
-    subset_size = 6
-    rep = [i for i in range(0, 6)]
-    objs = []
-    # Creating objects
 
-    for i in range(10):
-        objs.append(
-            g.Genotype(rep, main.fit)
-        )
-
-        
+    # Creating objects        
     for obj in objs:
         for element in obj.r:
             try:
@@ -25,16 +27,6 @@ def test_genotype_init():
                 raise ValueError("test_genotype failed!")
 
 def test_genotype_score():
-    # Init
-    subset_size = 6
-    rep = [i for i in range(0, subset_size)]
-    objs = []
-    # Creating objects
-
-    for i in range(10):
-        objs.append(
-            g.Genotype(rep, main.fit)
-        )
 
     # Calculating scores
     for obj in objs:
@@ -45,4 +37,5 @@ def test_genotype_score():
         assert tmp_score > 0, f"Score is not larger then 0, score is {tmp_score}"
     
 if __name__ == "__main__":
+    test_genotype_init()
     test_genotype_score()

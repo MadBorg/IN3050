@@ -1,8 +1,10 @@
 import numpy as np
+import IPython as ip
+
 import genotype
 
 class Population:
-    def __init__(self, Genotype, representation, evaluator, population_size, parent_selection_portion):
+    def __init__(self, Genotype, representation, evaluator, population_size, parent_selection_portion, number_of_offsprings):
         """
         Input:
         -----
@@ -15,7 +17,9 @@ class Population:
         population_size: int
             Determins how big the population should be
         parent_selection_portion: float
-            Determiens witch portion of the population is going to be used ot make offsprings 
+            Determiens witch portion of the population is going to be used ot make offsprings
+        number_of_offsprings: int
+            number of offsprings made in recombination
         """
         # Asserts
         assert type(population_size) is int, "Population size must be int"
@@ -23,19 +27,19 @@ class Population:
         # Storing
         self.genotype = genotype
         self.population_size = population_size
+        self.parent_selection_portion = parent_selection_portion
+        self.number_of_offsprings = number_of_offsprings
+        self.evaluator = evaluator
 
         # Creating population
         pop = [] 
-        for i in range(population_size):
+        for _ in range(population_size):
+            new_genotype = genotype.Genotype(evaluator=evaluator)
+            new_genotype.make_permutation(representation)
             pop.append(
-                Genotype(
-                    representation,
-                    evaluator
+                    new_genotype
                 )
-            )
-        self._population = pop
-    
-        # 
+        self._population = pop 
 
     def __call__(self):
         return self._population
@@ -51,69 +55,100 @@ class Population:
         self._scores = scores
         return scores
 
-
     # - Parent Selection 
+    def parent_selection(self, selection_method="ranked_based_selection"):
+        # Init
+
+        # Method selection
+        if selection_method == "ranked_based_selection":
+            method = self.ranked_based_selection
+        
+        # Getting children
+        # method() # if the store in self is the convention
+        parents = method()
+
+        # return/store - Not sure on the convention
+        self._parents = parents
+        return parents
+
+    # Parent Selection - Methods
     def ranked_based_selection(self):
+        # print("__ranked_based_selection__") # - Debug
         scores = self._scores[:]
+        N = len(self._population)
+        parents = []
+        number_of_parents = int(N * self.parent_selection_portion) # making sure to have a whole number
+        number_of_parents += int((N * self.parent_selection_portion) % 2) # to make sure to have a even number of parents
         # Making a mapping of the population of indices to the population, this is to be sorted and used for selecting parents
-        mapping = [i for i in range(0, len(self._population))] # map of population
+        mapping = [i for i in range(0, N)] # map of population
 
         # Sorting after scores, rank is the position in the list
-        scores, mapping = zip(*sorted(zip(scores, mapping)))
+        scores, mapping = zip(*sorted(zip(scores, mapping))) # Smallest to largest
 
-        # TODO : Check for DESC or ASC, good night
+        # Selecting
+        probabilites = np.array([N - i for i in range(N)]) # Making probabilites for coosing from the invers of traditional ranking
+        probabilites = probabilites / np.sum(probabilites) # normalizing 
+        selected_map = np.random.choice( # index map of chosen parents
+            mapping, p=probabilites, size=number_of_parents, replace=False
+            )
+        np.random.shuffle(selected_map) # To remove bias in creating couples
 
+        for index in selected_map:
+            parents.append(
+                self._population[index]
+            )
 
-    # - Recombination (Crossover)
-    def recombination(self, couples, N, crossover_method="PMX", children_per_couple=2):
-        """
-        Input:
-        ----
-        N: int
-            Number of offsprings
-        couples:
-            pairs of preselected parents
+        # print(f"  probabilites: {probabilites}")  # - Debug
+        # print(f"  selected_map: {selected_map}")  # - Debug
+        self._parents = parents
+        return parents
         
-        Info:
-        -----
-        Recommended:
-            N % (couples * children per couple) == 0
-            children_per_couple = 2 or a multiple of 2
+    # - Recombination (Crossover)
+    def recombination(self, crossover_method="PMX", children_per_couple=2):
         """
-        # Assumptions
-        assert N > self.population_size, "recombination: N must be equal or bigger than population size"
-        if (len(couples) * children_per_couple) % N == 0:
-            print(f"WARNING! - N % (len(couples) * children_per_couple) != 0, its {(len(couples) * children_per_couple)}")
+        """
+        # Init
+        parents = self._parents
+        offsprings = []
+        N = self.number_of_offsprings
 
-        # -
+        # Asserts
+        assert len(parents) % 2 == 0, "(recombination) len of parents must be a even number"
+        assert N > len(parents), "(recombination) len of parents must be smaller than the amount of new offsprings"
+        if N % (len(parents) * children_per_couple) != 0:
+            print("Warning, recombination works best when: N % (len(parents) * children_per_couple)!")
+
+        # Choosing mehtod (only one method implemented!)
         if crossover_method == "PMX":
             method = self.pmx
         else:
             raise NameError("Crossover method does not exist")
 
-        offsprings = []
-        for parents in couples:
-            c = 0 # counter for choosing parents
-            for i in range(children_per_couple):
-                offsprings.append(
-                    method(
-                        parents[c%children_per_couple], 
-                        parents[(c+1)%children_per_couple]
-                        ) # With modulo so that the parents will alternate
-                )
-                c += 1
+        # Applying chosen method
+        i = 0
+        while len(offsprings) < N:
+            couple = (parents[i%len(parents)], parents[(i+1)%len(parents)]) # a pair of parents to create offspring(s)
+            for j in range(children_per_couple):
+                # With modulo, so that the parents will alternate
+                P1 = couple[j%children_per_couple]()
+                P2 = couple[(j+1)%children_per_couple]()
+                offspring_template = method(P1, P2) # returns a list
+                offspring = genotype.Genotype(r=offspring_template) # turns the list to offsping
+                offsprings.append(offspring)
+            i += 2
     
-        self.offsprings = offsprings
-        return offsprings
 
-    # PMX
+        # store/return
+        # self._offsprings = offsprings
+        # return offsprings
+
+        self._population = offsprings # age bias: only offspring
+
+    # Recombination (Crossover) - Methodds
     def pmx(self, P1, P2, c1=None, c2=None):
-        # print(f"pmx:")
-        # print(f"  P1: {P1},\n  P2: {P2},\n  c1: {c1}, c2: {c2}")
-
         # - 1.
         if c1 is None:
-            c1 = np.random.randint(0, P1)
+            c1 = np.random.randint(0, len(P1))
         if c2 is None:
             c2 = np.random.randint(0, len(P1))  
 
@@ -155,13 +190,15 @@ class Population:
             if offspring[i] is None:
                 offspring[i] = P2[i]
         # print(f"  After adding rest of p2 to offspring: {offspring}")
-
         return offspring        
     # Edge crossover
     # Order crossover
     # Cycle Crossover
 
     # - Survivor Selection Mechanism (Replacement)
+
+    # - Mutation
+
 
 
     # Crossover
