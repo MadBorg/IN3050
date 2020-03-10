@@ -4,7 +4,7 @@ import IPython as ip
 import genotype
 
 class Population:
-    def __init__(self, Genotype, representation, evaluator, population_size, parent_selection_portion, number_of_offsprings):
+    def __init__(self, Genotype, representation, evaluator, population_size, parent_selection_portion, number_of_offsprings, mutation_probability):
         """
         Input:
         -----
@@ -27,9 +27,15 @@ class Population:
         # Storing
         self.genotype = genotype
         self.population_size = population_size
+        self.target_population_size = population_size
         self.parent_selection_portion = parent_selection_portion
         self.number_of_offsprings = number_of_offsprings
         self.evaluator = evaluator
+        self.mutation_probability = mutation_probability
+
+        # Nones
+        self._offsprings = None
+        self._scores = None
 
         # Creating population
         pop = [] 
@@ -39,16 +45,37 @@ class Population:
             pop.append(
                     new_genotype
                 )
-        self._population = pop 
+        self.population = pop 
 
     def __call__(self):
         return self._population
     
+    @property
+    def population(self):
+        return self._population
+    @population.setter
+    def population(self, pop):
+        self.population_size = len(pop)
+        self._population = pop
+
     # - Evaluate
-    def evaluate_population(self, df):
+    def evaluate(self, df, genotype_set):
+        """
+        df: dataframe
+            data for eval
+        genotype_set: "population"|"offspings"
+            evaluate offsprings or the population
+        """
+        # what to evaluate
+        if genotype_set == "population":
+            to_be_evaled = self()
+        elif genotype_set == "offsprings":
+            to_be_evaled = self._offsprings
+        else:
+            raise NameError('genotype_set not given must be: "population"|"offspings"')
         # Using the fact that list are order specific
         scores = []
-        for genotype in self():
+        for genotype in to_be_evaled:
             scores.append(
                 genotype.calculate_score(df)
             )
@@ -141,8 +168,9 @@ class Population:
         # store/return
         # self._offsprings = offsprings
         # return offsprings
-
-        self._population = offsprings # age bias: only offspring
+        self._offsprings = offsprings
+        return offsprings
+        # self.population = offsprings # age bias: only offspring
 
     # Recombination (Crossover) - Methodds
     def pmx(self, P1, P2, c1=None, c2=None):
@@ -196,8 +224,66 @@ class Population:
     # Cycle Crossover
 
     # - Survivor Selection Mechanism (Replacement)
+    def survivor_selection(self, method="simple_deterministic"):
+        if method == "simple_deterministic":
+            method = self.simple_deterministic
+        else:
+            raise NotImplementedError("given method does not exist or is not implemented!")
+
+        # using method
+        method()
+        
+    def simple_deterministic(self):
+        """
+        Killing all parents, picking the best offspring
+        Using a mappin so i don't have to sort the population (probably not needed, but trying to eliminate bias where i don't want it)
+        """
+        # init
+        target_pop_size = self.target_population_size
+        if self._offspring:
+            offsprings = self._offsprings
+        else:
+            raise ValueError("No offspings to choose from run recombination first!")
+        if self._scores:
+            scores = self._scores
+        else:
+            raise ValueError("No socres to choose offspings from, need to ")
+
+        mapping = np.arange(0, len(offsprings))
+        scores, sorted_mapping = zip(*sorted(zip(scores, mapping)))
+        tmp = []
+        for index in sorted_mapping[:target_pop_size]:
+            tmp.append(offsprings[index])
+
+        self.population = tmp[:]
+            
+
 
     # - Mutation
+    def mutate(self, mutation_method="swap_mutation"):
+        # Init
+        mutation_probability = self.mutation_probability
+        # Asserts
+        assert type(mutation_probability) is float, "Mutation probability is not a float"
+        assert mutation_probability <= 1 and mutation_probability >= 0, "mutation probability must be a probability"
+        if self._offsprings is None:
+            raise ValueError("Offsprings does not exist!")
+
+        # Method
+        if mutation_method == "swap_mutation":
+            method = self.swap_mutation
+
+        # Choosing who to mutate
+        probabilities = np.random.random(size=self.population_size)
+        chosen_gene_index = np.where(probabilities > mutation_probability)[0]
+
+        # Mutating
+        method(chosen_gene_index)
+
+    # mutation methods
+    def swap_mutation(self, indices_to_genes):
+        for index in indices_to_genes:
+            self._offsprings[index].swap_mutation()
 
 
 

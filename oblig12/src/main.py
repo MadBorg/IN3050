@@ -43,6 +43,7 @@ if __name__ == "__main__":
     pop_size = 100
     parent_selection_portion = 0.5
     Noffsprings = 2*pop_size
+    mutation_p = 0.1
 
     # Getting data
     cities_data = data.data()
@@ -57,10 +58,11 @@ if __name__ == "__main__":
         evaluator = fit,
         population_size = pop_size,
         parent_selection_portion = parent_selection_portion,
-        number_of_offsprings = Noffsprings
+        number_of_offsprings = Noffsprings,
+        mutation_probability = mutation_p
     )
     # -  Evaluate
-    cur_population.evaluate_population(df=subset_data)
+    cur_population.evaluate_population(df=subset_data, genotype_set="population")
     # -  Loop
     for generation in range():
     # -  Parent Selection
@@ -68,7 +70,9 @@ if __name__ == "__main__":
     # -  Recombine - Crossover
         cur_population.recombination()
     # -  Mutate
-        
+        cur_population.mutate()
     # -  Evaluate
+        cur_population.evaluate_population(df=subset_data, genotype_set="offsprings")
     # -  Survivor Selection
+        cur_population.survivor_selection()
     # -  endLoop

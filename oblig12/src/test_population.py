@@ -3,12 +3,15 @@ import genotype
 import main
 import data
 
+import IPython as ip
+
 df = data.data(main.path_to_datafile)
 
 population_size = 100
 subset_size = 6
 parent_selection_portion = 0.5
 number_of_offsprings = 200
+mutation_prob = 0.2
 cities_data = data.data()
 cities_data.read_csv(main.path_to_datafile)
 subset = cities_data.get_subset(subset_size)
@@ -20,7 +23,8 @@ pop = population.Population(
     main.fit,
     population_size,
     parent_selection_portion,
-    number_of_offsprings
+    number_of_offsprings, 
+    mutation_prob
 )
 
 def test_population_create_population():
@@ -44,7 +48,24 @@ def test_population_recombination():
     for offsping in offsprings:
         assert len(offsping) == subset_size, "len offsping is not equal subset size"
 
+def test_population_mutation():
+    """
+    Tests that when there was a mutation there is only two differences between in the gene
+    """
+    pop_before = pop.population[:]
+    pop.mutation_probability = 0.5
+    pop.mutate()
+    pop_after = pop.population[:]
+    # ip.embed()
+    for gene_before, gene_after in zip(pop_before, pop_after):
+        if not gene_before.r == gene_after.r:
+            counter = 0
+            for allele_before, allele_after in zip(gene_before.r, pop_after.r):
+                counter += allele_before == allele_after
+            if not counter == 2:
+                raise ValueError(f"population_mutation: before: {gene_before}, after: {gene_after}")
 
 if __name__ == "__main__":
     test_population_create_population()
     test_population_recombination()
+    test_population_mutation()

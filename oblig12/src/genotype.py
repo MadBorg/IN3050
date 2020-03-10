@@ -1,4 +1,5 @@
 import random
+# import numpy as np 
 
 class Genotype():
     """
@@ -32,7 +33,22 @@ class Genotype():
         self._r = tuple(r)
 
     # mutation - method
+
     # Swap Mutation
+    def swap_mutation(self):
+        # Init
+        locus1 = locus2 = 0
+        index_options = [i for i in range(0,len(self))]
+
+        # Coosing random indices
+        locus1, locus2 = random.sample(index_options, 2) # Choosing two
+
+        # Swaping
+        tmp = self.r[locus1]
+        self.r[locus1] = self.r[locus2]
+        self.r[locus2] = tmp
+        
+        
     # Insert Mutation
     # Scramble Mutation
     # Inversion Mutation
