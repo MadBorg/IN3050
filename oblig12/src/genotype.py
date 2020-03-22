@@ -1,6 +1,8 @@
 import random
 # import numpy as np 
 
+import IPython as ip
+
 class Genotype():
     """
     Representation:
@@ -14,7 +16,7 @@ class Genotype():
         else:
             self._r = None
         if evaluator:
-            self.evaluator = evaluator
+            self._evaluator = evaluator
         
         self._score = None
 
@@ -28,9 +30,10 @@ class Genotype():
         """
         Making random premutation of the representation
         """
+        self._r = None
         r = representation[:]
         random.shuffle(r)
-        self._r = tuple(r)
+        self._r = r
 
     # mutation - method
 
@@ -45,9 +48,9 @@ class Genotype():
 
         # Swaping
         tmp = self.r[locus1]
-        self.r[locus1] = self.r[locus2]
-        self.r[locus2] = tmp
-        
+        self._r[locus1] = self._r[locus2]
+        self._r[locus2] = tmp
+
         
     # Insert Mutation
     # Scramble Mutation
@@ -55,16 +58,20 @@ class Genotype():
 
     # Score 
     def calculate_score(self, df):
+        # ip.embed()
+        # init
+        score = 0
+        # - cur 
         score = self.evaluator(self.r, df)     
         self._score = score
         return score   
 
     @property
     def evaluator(self):
-        return self._fit
+        return self._evaluator
     @evaluator.setter
     def evaluator(self, fun):
-        self._fit = fun
+        self._evaluator = fun
 
     @property
     def r(self):

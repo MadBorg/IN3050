@@ -25,6 +25,7 @@ pop = population.Population(
     parent_selection_portion,
     number_of_offsprings, 
     mutation_prob
+
 )
 
 def test_population_create_population():
@@ -39,7 +40,7 @@ def test_population_create_population():
 def test_population_recombination():
     couples = [(i, i+1) for i in range(0,100,2)] # TODO : Implement parent selection
 
-    pop.evaluate_population(subset)
+    pop.evaluate(subset, "population")
     pop.parent_selection()
     offsprings = pop.recombination()
 

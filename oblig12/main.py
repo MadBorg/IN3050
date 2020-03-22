@@ -1,6 +1,11 @@
-import data
-import population
-import genotype
+import src.data as data
+import src.population as population
+import src.genotype as genotype
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+import IPython as ip
 
 """     __General information__
 Population:
@@ -23,6 +28,7 @@ path_to_datafile = "data//european_cities.csv" # relative path
 # -
 
 def fit(model, df):
+    # ip.embed()
     x = 0 # summation variable
     for i in range(len(model)-1):
         x += df.iloc[model[i], model[i+1]]
@@ -37,20 +43,21 @@ if __name__ == "__main__":
     """
     # -  Initialise
     # Variables
-    number_of_generations = 100 # Number of iterations, break condition
+    number_of_generations = 100# Number of iterations, break condition
     start_city = 0 # TODO : implement for start city
-    subset_sizes = [6, 10]
+    subset_sizes = [6, 24]
     pop_size = 100
     parent_selection_portion = 0.5
     Noffsprings = 2*pop_size
     mutation_p = 0.1
 
+    scores = np.zeros(shape=(number_of_generations))
     # Getting data
     cities_data = data.data()
     cities_data.read_csv(path_to_datafile)
-    representation = cities_data.get_representation(1, subset_sizes[0])
-    subset_data = cities_data.get_subset(subset_sizes[0])
-
+    representation = cities_data.get_representation(start=0, N=subset_sizes[1])
+    subset_data = cities_data.get_subset(subset_sizes[1])
+    # ip.embed()
     # Population
     cur_population = population.Population(
         Genotype = genotype.Genotype,
@@ -61,10 +68,13 @@ if __name__ == "__main__":
         number_of_offsprings = Noffsprings,
         mutation_probability = mutation_p
     )
+    
     # -  Evaluate
-    cur_population.evaluate_population(df=subset_data, genotype_set="population")
+    res = cur_population.evaluate(df=subset_data, genotype_set="population")
+    scores[0] = np.sum(res)/ len(res)
     # -  Loop
-    for generation in range():
+    for generation in range(number_of_generations):
+        # ip.embed()
     # -  Parent Selection
         cur_population.parent_selection()
     # -  Recombine - Crossover
@@ -72,7 +82,14 @@ if __name__ == "__main__":
     # -  Mutate
         cur_population.mutate()
     # -  Evaluate
-        cur_population.evaluate_population(df=subset_data, genotype_set="offsprings")
+        cur_population.evaluate(df=subset_data, genotype_set="offsprings")
     # -  Survivor Selection
         cur_population.survivor_selection()
+
+    # - Storing
+        res = cur_population.scores
+        scores[generation] = np.sum(res)/ len(res)
     # -  endLoop
+    print(f"min score: {np.min(scores)} ")
+    plt.plot(np.arange(0, number_of_generations), scores, "go")
+    plt.show()

@@ -20,6 +20,7 @@ def data_subset(path, N):
     data = pd.read_csv(path, sep=";")
     return data.iloc[:N, :N]
 
+
 class data:
     def __init__(self, path_to_csv=None):
         if path_to_csv:
@@ -49,3 +50,12 @@ class data:
         Simple representation list of integers from 0 to (not including) N
         """
         return [i for i in range(start, N)]
+    
+    def get_overview(self, number_of_cities):
+        r = []
+        cities = self.df.columns
+        for i in range(number_of_cities):
+            r.append(
+                (i, cities[i])
+            )
+        return r

@@ -1,7 +1,7 @@
 import numpy as np
 import IPython as ip
 
-import genotype
+import src.genotype as genotype
 
 class Population:
     def __init__(self, Genotype, representation, evaluator, population_size, parent_selection_portion, number_of_offsprings, mutation_probability):
@@ -21,11 +21,13 @@ class Population:
         number_of_offsprings: int
             number of offsprings made in recombination
         """
+        # init
+        self.population = []    
         # Asserts
         assert type(population_size) is int, "Population size must be int"
 
         # Storing
-        self.genotype = genotype
+        self.genotype = Genotype
         self.population_size = population_size
         self.target_population_size = population_size
         self.parent_selection_portion = parent_selection_portion
@@ -35,7 +37,6 @@ class Population:
 
         # Nones
         self._offsprings = None
-        self._scores = None
 
         # Creating population
         pop = [] 
@@ -45,7 +46,9 @@ class Population:
             pop.append(
                     new_genotype
                 )
-        self.population = pop 
+        # ip.embed()
+
+        self.population = pop[:]
 
     def __call__(self):
         return self._population
@@ -55,9 +58,24 @@ class Population:
         return self._population
     @population.setter
     def population(self, pop):
+        # print(f"New population: {pop}")pop
         self.population_size = len(pop)
-        self._population = pop
+        self._population = []
+        self._population = pop[:]
+    
+    @property
+    def scores(self):
+        s = []
+        for genom in self():
+            s.append(genom.score)
+        return s
 
+    @property
+    def offspring_scores(self):
+        s = []
+        for genom in self._offsprings:
+            s.append(genom.score)
+        return s
     # - Evaluate
     def evaluate(self, df, genotype_set):
         """
@@ -66,6 +84,8 @@ class Population:
         genotype_set: "population"|"offspings"
             evaluate offsprings or the population
         """
+        # Init
+        scores = []
         # what to evaluate
         if genotype_set == "population":
             to_be_evaled = self()
@@ -74,18 +94,16 @@ class Population:
         else:
             raise NameError('genotype_set not given must be: "population"|"offspings"')
         # Using the fact that list are order specific
-        scores = []
         for genotype in to_be_evaled:
             scores.append(
                 genotype.calculate_score(df)
             )
-        self._scores = scores
-        return scores
+        return scores[:]
 
     # - Parent Selection 
     def parent_selection(self, selection_method="ranked_based_selection"):
         # Init
-
+        parents = []
         # Method selection
         if selection_method == "ranked_based_selection":
             method = self.ranked_based_selection
@@ -95,14 +113,14 @@ class Population:
         parents = method()
 
         # return/store - Not sure on the convention
-        self._parents = parents
-        return parents
+        self._parents = parents[:]
+        return parents[:]
 
     # Parent Selection - Methods
     def ranked_based_selection(self):
         # print("__ranked_based_selection__") # - Debug
-        scores = self._scores[:]
-        N = len(self._population)
+        scores = self.scores
+        N = len(self.population)
         parents = []
         number_of_parents = int(N * self.parent_selection_portion) # making sure to have a whole number
         number_of_parents += int((N * self.parent_selection_portion) % 2) # to make sure to have a even number of parents
@@ -125,10 +143,11 @@ class Population:
                 self._population[index]
             )
 
+        # ip.embed()
         # print(f"  probabilites: {probabilites}")  # - Debug
         # print(f"  selected_map: {selected_map}")  # - Debug
-        self._parents = parents
-        return parents
+        self._parents = parents[:]
+        return parents[:]
         
     # - Recombination (Crossover)
     def recombination(self, crossover_method="PMX", children_per_couple=2):
@@ -142,8 +161,8 @@ class Population:
         # Asserts
         assert len(parents) % 2 == 0, "(recombination) len of parents must be a even number"
         assert N > len(parents), "(recombination) len of parents must be smaller than the amount of new offsprings"
-        if N % (len(parents) * children_per_couple) != 0:
-            print("Warning, recombination works best when: N % (len(parents) * children_per_couple)!")
+        # if N % (len(parents) * children_per_couple) != 0:
+        #     print("Warning, recombination works best when: N % (len(parents) * children_per_couple)!")
 
         # Choosing mehtod (only one method implemented!)
         if crossover_method == "PMX":
@@ -160,7 +179,7 @@ class Population:
                 P1 = couple[j%children_per_couple]()
                 P2 = couple[(j+1)%children_per_couple]()
                 offspring_template = method(P1, P2) # returns a list
-                offspring = genotype.Genotype(r=offspring_template) # turns the list to offsping
+                offspring = genotype.Genotype(r=offspring_template, evaluator=self.evaluator) # turns the list to offsping
                 offsprings.append(offspring)
             i += 2
     
@@ -168,8 +187,8 @@ class Population:
         # store/return
         # self._offsprings = offsprings
         # return offsprings
-        self._offsprings = offsprings
-        return offsprings
+        self._offsprings = offsprings[:]
+        return offsprings[:]
         # self.population = offsprings # age bias: only offspring
 
     # Recombination (Crossover) - Methodds
@@ -231,7 +250,8 @@ class Population:
             raise NotImplementedError("given method does not exist or is not implemented!")
 
         # using method
-        method()
+        offsprings = method()
+        self.population = offsprings[:]
         
     def simple_deterministic(self):
         """
@@ -240,22 +260,21 @@ class Population:
         """
         # init
         target_pop_size = self.target_population_size
-        if self._offspring:
+        if self._offsprings:
             offsprings = self._offsprings
         else:
             raise ValueError("No offspings to choose from run recombination first!")
-        if self._scores:
-            scores = self._scores
+        if self.offspring_scores:
+            scores = self.offspring_scores
         else:
             raise ValueError("No socres to choose offspings from, need to ")
 
         mapping = np.arange(0, len(offsprings))
         scores, sorted_mapping = zip(*sorted(zip(scores, mapping)))
-        tmp = []
-        for index in sorted_mapping[:target_pop_size]:
-            tmp.append(offsprings[index])
-
-        self.population = tmp[:]
+        survivors = []
+        for i in range(0, target_pop_size):
+            survivors.append(offsprings[sorted_mapping[i]])
+        return survivors
             
 
 
