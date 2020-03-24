@@ -1,4 +1,5 @@
 import src.binary_classifiers.linear_regression as linear_regression
+import src.binary_classifiers.logistic_regression as logistic_regression
 import src.binary_classifiers.kNN as kNN
 import src.data_manager as data
 
@@ -23,6 +24,15 @@ def lin_reg_example():
     print(f"gradient: acc: {acc_gradient}, mse: {mse_gradient}")
     print(f"lm: acc: {acc_lm}, mse: {mse_lm}")
 
+def log_reg_example():
+    print("__Logistic regression__")
+    log_reg = logistic_regression.logistic_regression(
+        X_train, t2_train,
+    )
+    log_reg.fit(epochs=1000)
+    acc = log_reg.get_accuracy(X_val, t2_val)
+    print(f"Log reg: acc: {acc}")
+
 def kNN_example():
     print("__kNN__")
     obj = kNN.kNN(X_train, t2_train)
@@ -39,7 +49,9 @@ if __name__ == "__main__":
     t_val = data.t_val
     t2_val = data.t2_val
 
-    # # Linear regression
+    # Linear regression
     lin_reg_example()
+    # Logistic regression
+    log_reg_example()
     # kNN
     kNN_example()
