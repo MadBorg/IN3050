@@ -1,6 +1,7 @@
 import src.binary_classifiers.linear_regression as linear_regression
 import src.binary_classifiers.logistic_regression as logistic_regression
 import src.binary_classifiers.kNN as kNN
+import src.binary_classifiers.simple_perceptron as simple_perceptron
 import src.data_manager as data
 
 import numpy as np
@@ -40,6 +41,13 @@ def kNN_example():
     acc = np.sum((test == t2_val))/t2_val.shape[0]
     print(f"accuracy: {acc}")
 
+def simple_perceptron_example():
+    print("__simple perceptron__")
+    obj = simple_perceptron.Simple_perceptron(X_train, t2_train)
+    obj.fit(epochs=1000, learning_rate=0.01, diff=0.001)
+    acc = obj.get_accuracy(X_val, t2_val)
+    print(f"accuracy: {acc}")
+
 if __name__ == "__main__":
     # Init
     X_train = data.X_train
@@ -55,3 +63,6 @@ if __name__ == "__main__":
     log_reg_example()
     # kNN
     kNN_example()
+    # simple_perceptron_example
+    simple_perceptron_example()
+
