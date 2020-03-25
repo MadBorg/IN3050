@@ -27,4 +27,4 @@ class Multiclass_Classifier:
 
     def get_accuracy(self, X_val, t_val, **kwargs):
         Y = self.classify(X_val, **kwargs)
-        return np.sum(Y == t_val) / t_val.shape[0]
+        return np.sum((Y == t_val).astype(int)) / t_val.shape[0]

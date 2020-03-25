@@ -9,8 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import IPython
 
+
 def lin_reg_example():
-    print("__linear regression__")
+    print("\n__linear regression__")
     beta = linear_regression.lm(X_train, t2_train)
     outputs = linear_regression.linreg(X_train, t2_train)
 
@@ -24,8 +25,9 @@ def lin_reg_example():
     print(f"gradient: acc: {acc_gradient}")
     print(f"lm: acc: {acc_lm}")
 
+
 def log_reg_example():
-    print("__Logistic regression__")
+    print("\n__Logistic regression__")
     log_reg = logistic_regression.logistic_regression(
         X_train, t2_train,
     )
@@ -33,29 +35,36 @@ def log_reg_example():
     acc = log_reg.get_accuracy(X_val, t2_val)
     print(f"Log reg: acc: {acc}")
 
+
 def kNN_example():
-    print("__kNN__")
+    print("\n__kNN__")
     obj = kNN.kNN(X_train, t2_train)
     test = obj.classify(X_val, k=10)
     acc = np.sum((test == t2_val))/t2_val.shape[0]
     print(f"accuracy: {acc}")
 
+
 def simple_perceptron_example():
-    print("__simple perceptron__")
+    print("\n__simple perceptron__")
     obj = simple_perceptron.Simple_perceptron(X_train, t2_train)
     obj.fit(epochs=1000, learning_rate=0.01, diff=0.001)
     acc = obj.get_accuracy(X_val, t2_val)
     print(f"accuracy: {acc}")
-def kNN_multiclass_example():
-    print("__kNN multiclass__")
+
+
+def kNN_multiclass_example(plot=False):
+    print("\n__kNN multiclass__")
     obj = kNN_multiclass.kNN(X_train, t_train, k=10)
-    # acc = obj.get_accuracy(X_val, t_val)
-    # print(f"acc: {acc}")
-    # IPython.embed()
-    for i in range(1,300, 10):
-        acc = obj.get_accuracy(X_val, t_val, k=i)
-        print(f"  k={i}, acc: {acc}")
-        
+    acc = np.zeros(400-1)
+    for i in range(1, 400):
+        acc[i-1] = obj.get_accuracy(X_val, t_val, k=i)
+        # print(f"  k={i}, acc: {acc[i-1]}")
+    print(f"max acc: {np.max(acc)}, at k: {np.where(acc == np.max(acc))}")
+    if plot:
+        plt.plot(np.arange(400-1), acc)
+        plt.show()
+    
+
 
 
 if __name__ == "__main__":
@@ -72,17 +81,16 @@ if __name__ == "__main__":
     log_reg_example()
     kNN_example()
     simple_perceptron_example()
-    
+
     # __Multi-class classifiers__
-    kNN_multiclass_example()
+    kNN_multiclass_example(plot=False)
 
     # plot
     plt.subplot(211)
-    plt.scatter(X_train[:,0], X_train[:,1], c=t_train, marker=".")
+    plt.scatter(X_train[:, 0], X_train[:, 1], c=t_train, marker=".")
     plt.subplot(212)
-    plt.scatter(X_train[:,0], X_train[:,1], c=t2_train, marker=".")
+    plt.scatter(X_train[:, 0], X_train[:, 1], c=t2_train, marker=".")
     plt.show()
 
     # plt.scatter(X_train[:,0], X_train[:,1], s=t2_train)
-
 
