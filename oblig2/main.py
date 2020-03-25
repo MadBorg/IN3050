@@ -2,9 +2,11 @@ import src.binary_classifiers.linear_regression as linear_regression
 import src.binary_classifiers.logistic_regression as logistic_regression
 import src.binary_classifiers.kNN as kNN
 import src.binary_classifiers.simple_perceptron as simple_perceptron
+import src.multiclass_classifiers.kNN as kNN_multiclass
 import src.data_manager as data
 
 import numpy as np
+import matplotlib.pyplot as plt
 import IPython
 
 def lin_reg_example():
@@ -18,12 +20,9 @@ def lin_reg_example():
     gradient = linear_regression.LinReg(X_train, t2_train)
     gradient.fit(1000, 0.01)
     acc_gradient = gradient.get_accuracy(X_val, t2_val)
-    
-    mse_gradient = gradient.get_mse()
-    mse_lm = lm.get_mse()
 
-    print(f"gradient: acc: {acc_gradient}, mse: {mse_gradient}")
-    print(f"lm: acc: {acc_lm}, mse: {mse_lm}")
+    print(f"gradient: acc: {acc_gradient}")
+    print(f"lm: acc: {acc_lm}")
 
 def log_reg_example():
     print("__Logistic regression__")
@@ -47,6 +46,17 @@ def simple_perceptron_example():
     obj.fit(epochs=1000, learning_rate=0.01, diff=0.001)
     acc = obj.get_accuracy(X_val, t2_val)
     print(f"accuracy: {acc}")
+def kNN_multiclass_example():
+    print("__kNN multiclass__")
+    obj = kNN_multiclass.kNN(X_train, t_train, k=10)
+    # acc = obj.get_accuracy(X_val, t_val)
+    # print(f"acc: {acc}")
+    # IPython.embed()
+    for i in range(1,300, 10):
+        acc = obj.get_accuracy(X_val, t_val, k=i)
+        print(f"  k={i}, acc: {acc}")
+        
+
 
 if __name__ == "__main__":
     # Init
@@ -57,12 +67,22 @@ if __name__ == "__main__":
     t_val = data.t_val
     t2_val = data.t2_val
 
-    # Linear regression
+    # __Binary__
     lin_reg_example()
-    # Logistic regression
     log_reg_example()
-    # kNN
     kNN_example()
-    # simple_perceptron_example
     simple_perceptron_example()
+    
+    # __Multi-class classifiers__
+    kNN_multiclass_example()
+
+    # plot
+    plt.subplot(211)
+    plt.scatter(X_train[:,0], X_train[:,1], c=t_train, marker=".")
+    plt.subplot(212)
+    plt.scatter(X_train[:,0], X_train[:,1], c=t2_train, marker=".")
+    plt.show()
+
+    # plt.scatter(X_train[:,0], X_train[:,1], s=t2_train)
+
 

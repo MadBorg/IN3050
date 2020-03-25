@@ -15,11 +15,14 @@ class kNN:
         self.distance_method = distance_method
 
     # distances
-    def calc_distances(self, X, method=""):
-        if self.distance_method == "euclidian":
+    def calc_distances(self, X, method=None):
+        if method == "euclidian":
             method = self._euclidian_distance
         else:
-            raise NotImplementedError(f"method {method} is not implemented!")
+            if self.distance_method == "euclidian":
+                method = self._euclidian_distance
+            else:
+                raise NotImplementedError(f"method {method} is not implemented!")
 
         return method(X)
     # - Euclidian distance  (pythagoras)
