@@ -51,8 +51,10 @@ class logistic_regression:
         X = self._add_bias(X_test)
         Y = self.predict(X, self.W)
         Y_binary = Y > theta
-        return (np.sum((Y_binary == t_test).astype(int)) / N)[0]
+        return (np.sum(Y_binary == t_test) / N)[0]
         
+    def _add_bias(self, X):
+        return np.insert(X, [2], [-1], axis=1)
 
 
     # # loss function
@@ -73,8 +75,7 @@ class logistic_regression:
     #     cross-entropy loss function, using gradient decent
     #     """
 
-    def _add_bias(self, X):
-        return np.insert(X, [2], [-1], axis=1)
+
         
 
     # Predict

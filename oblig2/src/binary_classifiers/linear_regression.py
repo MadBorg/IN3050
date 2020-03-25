@@ -21,9 +21,7 @@ class LinReg:
 
     def fit(self, epochs, gamma=None):     # Gradient decent
         # init
-        if gamma:
-            self.gamma = gamma
-        else:
+        if not gamma:
             if self.gamma:
                 gamma = self.gamma
             else:
