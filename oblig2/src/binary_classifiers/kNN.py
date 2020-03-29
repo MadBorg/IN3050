@@ -1,8 +1,9 @@
+import src.binary_classifiers.binary_classifier as binary_classifier
 import numpy as np
 
 import IPython
 
-class kNN:
+class kNN(binary_classifier.Binary_Classifier):
     distance_methods = ["euclidian"]
 
     def __init__(self, data, targets, k=None, distance_method = "euclidian"):

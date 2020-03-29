@@ -1,7 +1,8 @@
+import src.binary_classifiers.binary_classifier as binary_classifier
 import numpy as np
 import IPython 
 
-class Simple_perceptron:
+class Simple_perceptron(binary_classifier.Binary_Classifier):
     def __init__(self,X, t, learning_rate=0.1, decision_boundary=0.5, epochs=None, diff=0.001):
         self.X = X = self._add_bias(X)
         self.t = t

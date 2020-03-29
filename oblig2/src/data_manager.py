@@ -18,6 +18,9 @@ random.seed(2020)
 random.shuffle(indices)
 indices[:10]
 
+def add_bias(X):
+    return np.append(X, np.zeros((X.shape[0],1))-1, axis=1)
+
 # split values to training, validation, final testing
 X_train = X[indices[:800],:]
 X_val = X[indices[800:1200],:]

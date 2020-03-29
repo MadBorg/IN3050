@@ -1,20 +1,18 @@
+import src.binary_classifiers.binary_classifier as binary_classifier
 import numpy as np
 
 import IPython
 
 
-class LinReg:
+class LinReg(binary_classifier.Binary_Classifier):
     def __init__(self, inputs, targets, X_val=None, t_val=None, gamma=None, diff=0.001):
         self.X = self._add_bias(inputs)
         self.t = targets
         self.W = None
         self.diff = diff
-        if X_val:
-            self.X_val = X_val
-        if t_val:
-            self.t_val = t_val
-        if gamma:
-            self.gamma = gamma
+        self.X_val = X_val
+        self.t_val = t_val
+        self.gamma = gamma
 
     def __call__(self, X):
         return self.predict(X)
@@ -82,8 +80,8 @@ class LinReg:
         # IPython.embed()
         return (np.sum((Y_binary == t_test).astype(int)) / N)[0]
 
-    def _add_bias(self, X):
-        return np.insert(X, [2], [-1], axis=1)
+    # def _add_bias(self, X):
+    #     return np.insert(X, [2], [-1], axis=1)
 
 
 def linreg(inputs, targets):

@@ -1,6 +1,10 @@
+import src.binary_classifiers.binary_classifier as binary_classifier
+
 import numpy as np
 
-class logistic_regression:
+import IPython
+
+class logistic_regression(binary_classifier.Binary_Classifier):
     def __init__(self,X, t, learning_rate=0.1, decision_boundary=0.5, epochs=None, diff=0.001):
         self.X = self._add_bias(X)
         self.t = t # targets
@@ -32,7 +36,10 @@ class logistic_regression:
 
         # learning
         for e in range(epochs):
-            update = (learning_rate / k) * (X.T @ (self.predict(X, W)))
+            update = (learning_rate / k) * (X.T @ (self.predict(X, W) - self.t))
+            # update = (learning_rate / 1) * (X.T @ (self.predict(X, W)- self.t))
+
+            
             sum_update = np.sum(np.abs(update))
             if sum_update < diff:
                 print(f"Fit break hit after {e} epochs")
@@ -43,8 +50,12 @@ class logistic_regression:
         return W
 
     def predict(self, X, W): # log
-        return 1/(1+np.exp(-(X @ W)))
-
+        try:
+            return 1/(1+np.exp(-(X @ W)))
+        except ValueError:
+            print("log reg predict - value error!")
+            IPython.embed()
+            exit()
     def get_accuracy(self, X_test, t_test):
         theta = self.decision_boundary
         N = t_test.shape
@@ -53,8 +64,8 @@ class logistic_regression:
         Y_binary = Y > theta
         return (np.sum(Y_binary == t_test) / N)[0]
         
-    def _add_bias(self, X):
-        return np.insert(X, [2], [-1], axis=1)
+    # def _add_bias(self, X):
+    #     return np.insert(X, [2], [-1], axis=1)
 
 
     # # loss function
