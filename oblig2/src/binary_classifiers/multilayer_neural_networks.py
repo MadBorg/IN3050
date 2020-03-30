@@ -50,7 +50,7 @@ class MNNClassifier:
                 (W_scale - -W_scale) * np.random.random(size=(nodes_pr_layer[i], nodes_pr_layer[i+1])) * -W_scale
             )
         self.weights = weights
-        IPython.embed(header="weights")
+        # IPython.embed(header="weights")
 
         # learning
         for e in range(epochs):
@@ -82,13 +82,18 @@ class MNNClassifier:
         t = self.t_train
         updates = []
         delta_h = []
-        IPython.embed()
+        # IPython.embed()
         
         delta_o = (t - Y) * Y * (1 - Y)
-        delta_h = activations[0] * (1- activations[0]) * delta_o.T @ self.weights[0]
+        # delta_h = activations[0] * (1- activations[0]) * delta_o.T @ self.weights[0]
+        delta_h = activations[0] * (1- activations[0]) * delta_o @ self.weights[0]
+
          
         update_h = self.eta * X.T @ delta_o
-        update_o = self.eta * activations[0] @ delta_o
+        try:
+            update_o = self.eta * activations[0] @ delta_o
+        except ValueError:
+            IPython.embed(header="backward")
 
         self.weights[0] +=update_h
         self.weights[1] +=update_o
