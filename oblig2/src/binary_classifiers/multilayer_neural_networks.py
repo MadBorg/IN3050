@@ -31,7 +31,7 @@ class MNNClassifier:
 
         #Scaling X
         self.scaler = Scaler(X_train)
-        X = self._add_bias(self.scaler.scale(X_train))
+        self.X = X = self._add_bias(self.scaler.scale(X_train))
 
         # init Weights, Since the weights can have different dimensions, i am making a list of weight matrixes
         weights = []
@@ -50,13 +50,14 @@ class MNNClassifier:
                 (W_scale - -W_scale) * np.random.random(size=(nodes_pr_layer[i], nodes_pr_layer[i+1])) * -W_scale
             )
         self.weights = weights
+        IPython.embed(header="weights")
 
         # learning
         for e in range(epochs):
             # Run one epoch of forward-backward
             #Fill in the code
             activations = self.forward(X)
-            self.backward(activations)
+            self.backward(X, activations)
 
             pass
 
@@ -73,24 +74,36 @@ class MNNClassifier:
             activations.append(cur_X)
         return activations
 
-    def backward(self, activations):
+    def backward(self, X, activations):
         """
         updating the weights
         """
         Y = activations[-1]
         t = self.t_train
         updates = []
-
+        delta_h = []
+        IPython.embed()
+        
         delta_o = (t - Y) * Y * (1 - Y)
-        update_o = self.eta * self.X_train.T @ delta_o
-        self.weights[-1] += update_o
-        for l in range(self.num_hidden_layers):
-            alfa = activations[l]
-            delta_h =  alfa*(1-alfa)* (delta_o @ self.weights[l].T)
-            update_h = self.eta * alfa.T @ delta_h
-            updates.append(update_h)
-            self.weights[l] += update_h
-        updates.append(update_o)
+        delta_h = activations[0] * (1- activations[0]) * delta_o.T @ self.weights[0]
+         
+        update_h = self.eta * X.T @ delta_o
+        update_o = self.eta * activations[0] @ delta_o
+
+        self.weights[0] +=update_h
+        self.weights[1] +=update_o
+
+        # - for multiple layers not working
+        # update_o = self.eta * X.T @ delta_o
+        # IPython.embed(header="backward")
+        # self.weights[-1] += update_o
+        # for l in range(self.num_hidden_layers):
+        #     alfa = activations[l]
+        #     delta_h =  alfa*(1-alfa)* (delta_o @ self.weights[l].T)
+        #     update_h = self.eta * alfa.T @ delta_h
+        #     updates.append(update_h)
+        #     self.weights[l] += update_h
+        # updates.append(update_o)
 
         return updates
 
