@@ -215,11 +215,14 @@ def one_round_of_training(X, target, dim_hidden=6, eta=0.01):
     print(f"  L1:\n{L1_W}\n  L2:\n{L2_W}\nNew Weights:\n  new L1:\n{new_L1_W}\n  new L2:\n{new_L2_W}")
     print(f"  Update 1:\n{update_L1}\n  Update 2:\n{update_L2}")
 
-def MNN_example(X_train, t_train, X_test, t_test):
+def MNN_example(X_train, t_train, X_test, t_test, epochs=100_000):
+    print("__MNN_example__")
+
     obj = multilayer_neural_networks.MNNClassifier()
-    obj.fit(X_train, t_train)
+    obj.fit(X_train, t_train, epochs=epochs)
     acc = obj.accuracy(X_test, t_test)
-    IPython.embed("MNN_example")
+    print(f"acc: {acc}, epochs: {epochs}")
+    # IPython.embed(header="MNN_example")
 
 if __name__ == "__main__":
     # Init

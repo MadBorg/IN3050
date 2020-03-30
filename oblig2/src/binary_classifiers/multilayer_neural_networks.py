@@ -5,7 +5,7 @@ import IPython
 class MNNClassifier:
     """A multi-layer neural network with one hidden layer"""
     
-    def __init__(self,eta = 0.001, dim_hidden = 6, num_hidden_layers=1):
+    def __init__(self,eta = 0.001, dim_hidden = 6):
         """
         Intialize the hyperparameters
 
@@ -14,8 +14,9 @@ class MNNClassifier:
         """
         self.eta = eta
         self.dim_hidden = dim_hidden
+        self.layers = 2
         # Should you put additional code here?
-        self.num_hidden_layers = num_hidden_layers
+        # self.num_hidden_layers = num_hidden_layers
 
     def fit(self, X_train, t_train, epochs = 100):
         """Intialize the weights. Train *epochs* many epochs."""
@@ -30,24 +31,21 @@ class MNNClassifier:
         (P, dim_in) = X_train.shape 
 
         #Scaling X
-        self.scaler = Scaler(X_train)
-        self.X = X = self._add_bias(self.scaler.scale(X_train))
-
+        # self.scaler = Scaler(X_train)
+        # self.X = X = self.scaler.scale(X_train)
         # init Weights, Since the weights can have different dimensions, i am making a list of weight matrixes
+        self.X = X = X_train
         weights = []
-        nodes_pr_layer = [dim_in+1]
-        try: # to handle for different dim on hidden layer
-            for dim in self.dim_hidden:
-                nodes_pr_layer.append(dim+1)
-        except TypeError:
-            nodes_pr_layer.append(self.dim_hidden+1)
-        nodes_pr_layer.append(dim_out)
+        nodes_pr_layer = [dim_in, self.dim_hidden, dim_out]
+
 
         for i in range(len(nodes_pr_layer)-1):
-            W_scale = 1/nodes_pr_layer[i]
-            # W_scale = (-1, 1)
+            # W_scale = 1/nodes_pr_layer[i]
+            # weights.append(
+            #     (W_scale - -W_scale) * np.random.random(size=(nodes_pr_layer[i]+1, nodes_pr_layer[i+1])) * -W_scale
+            # )
             weights.append(
-                (W_scale - -W_scale) * np.random.random(size=(nodes_pr_layer[i], nodes_pr_layer[i+1])) * -W_scale
+                np.random.random(size=(nodes_pr_layer[i]+1, nodes_pr_layer[i+1]))
             )
         self.weights = weights
         # IPython.embed(header="weights")
@@ -59,44 +57,44 @@ class MNNClassifier:
             activations = self.forward(X)
             self.backward(X, activations)
 
-            pass
+            # pass
 
     def forward(self, X):
         """Perform one forward step. 
         Return a pair consisting of the outputs of the hidden_layer
         and the outputs on the final layer"""
         #Fill in the code
-        activations = []
-        cur_X = X
-        for l in range(self.num_hidden_layers+1):
+        activations = [X]
+        for l in range(self.layers):
             # cur_X = self._add_bias(self._logit_activation(cur_X, self.weights[l]))
-            cur_X = self._logit_activation(cur_X, self.weights[l])
-            activations.append(cur_X)
+            # IPython.embed(header=f"forward l:{l}")
+            activations[l] = self._add_bias(activations[l])
+            activations.append(
+                 self._logit_activation(activations[l], self.weights[l])
+            )
         return activations
 
     def backward(self, X, activations):
         """
         updating the weights
         """
-        Y = activations[-1]
+        X = activations[0]
+        alfa = activations[1]
+        Y = activations[2]
         t = self.t_train
-        updates = []
-        delta_h = []
-        # IPython.embed()
+
         
         delta_o = (t - Y) * Y * (1 - Y)
         # delta_h = activations[0] * (1- activations[0]) * delta_o.T @ self.weights[0]
-        delta_h = activations[0] * (1- activations[0]) * delta_o @ self.weights[0]
+        delta_h = alfa * (1- alfa) * (delta_o @ self.weights[1].T)
 
          
-        update_h = self.eta * X.T @ delta_o
-        try:
-            update_o = self.eta * activations[0] @ delta_o
-        except ValueError:
-            IPython.embed(header="backward")
+        update_w1 = self.eta * X.T @ delta_h[:,:-1]
+        update_w2= self.eta * alfa.T @ delta_o
 
-        self.weights[0] +=update_h
-        self.weights[1] +=update_o
+        # IPython.embed(header="bacward")
+        self.weights[0] += update_w1
+        self.weights[1] += update_w2
 
         # - for multiple layers not working
         # update_o = self.eta * X.T @ delta_o
@@ -110,11 +108,11 @@ class MNNClassifier:
         #     self.weights[l] += update_h
         # updates.append(update_o)
 
-        return updates
+        # return updates
 
     def classify(self, X):
         r = self.forward(X)[-1]
-        IPython.embed(header="classify")
+        # IPython.embed(header="classify")
         return np.argmax(r, axis=1)
 
     def accuracy(self, X_test, t_test):
@@ -122,10 +120,11 @@ class MNNClassifier:
         Return the accuracy"""
         #Fill in the code
         c = self.classify(X_test)
-        IPython.embed(header="acc")
+        # IPython.embed(header="acc")
+        return np.sum(c == t_test) / t_test.shape[0]
 
     def _logit_activation(self, X, W):
-        return 1 / (1+ np.exp(-(X @ W))) # 1/(1+np.exp(-(beta * (X@W))))
+        return 1 / (1 + np.exp(-1 * (X @ W))) # 1/(1+np.exp(-(beta * (X@W))))
 
 
     def _add_bias(self, X):
